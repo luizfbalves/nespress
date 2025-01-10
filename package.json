@@ -1,0 +1,39 @@
+{
+  "name": "@luizfbalves/nespress",
+  "version": "0.1.1",
+  "author": "Luiz F. B. Alves",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "express": "^4.21.2",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.0",
+    "bun-plugin-dts": "^0.3.0"
+  },
+  "description": "Nespress is a wrapper around express that allows you to use decorators to define routes. It also includes a simple way to register controllers and their routes.",
+  "keywords": [
+    "nespress",
+    "typescript",
+    "decorators"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun build.mjs --outdir ./dist",
+    "build:link": "bun run build.mjs --outdir dist && bun link",
+    "dev": "bun run src/main.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "exports": {
+    ".": "./dist/main.js",
+    "./core": "./dist/core/index.js",
+    "./decorators": "./dist/decorators/index.js",
+    "./common": "./dist/common/index.js"
+  }
+}
