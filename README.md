@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
 </p>
 
-<p style="color:red; font-weight:bold;">**Note:** This package is under constant changes and is not yet ready for production use.</p>
+> **Note:** This package is under constant changes and is not yet ready for production use.
 
 Nespress is a wrapper around Express that allows you to use decorators to define routes. It also includes a simple way to register controllers and their routes.
 
