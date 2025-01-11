@@ -1,7 +1,7 @@
 import { log } from '@/common'
 import express, { type Request, type Response } from 'express'
 
-import type { RouteMetadataProps } from '../global'
+import type { QueryParams, RouteMetadataProps } from '../global'
 const nespress = express()
 
 nespress.use(express.json())
@@ -28,12 +28,20 @@ function registerControllers(controllers: any[]) {
 
         nespress[method](path, async (req: Request, res: Response) => {
           try {
-            const body: number[] = Reflect.getMetadata('body:metadata', controller, handler.name) || []
+            const bodyMetadata: number[] = Reflect.getMetadata('body:metadata', controller, handler.name) || []
+            const queryMetadata: QueryParams[] = Reflect.getMetadata('query:metadata', controller, handler.name) || []
             const params: any[] = []
 
-            if (body.length > 0) {
-              for (const index of body) {
+            if (bodyMetadata.length > 0) {
+              for (const index of bodyMetadata) {
                 params[index] = req.body
+              }
+            }
+
+            if (queryMetadata.length > 0) {
+              for (const query of queryMetadata) {
+                const { index, name } = query
+                params[index] = name && name in req.query ? req.query[name] : req.query
               }
             }
 

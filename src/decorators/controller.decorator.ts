@@ -13,17 +13,21 @@ export function CONTROLLER(props?: ControllerMetadataParams) {
     // Get the route metadata from the class
     const Routes: RouteMetadataProps[] = Reflect.getMetadata('routes:metadata', target) || []
 
+    Reflect.defineMetadata('controller:metadata', true, target)
+
     // Set the prefix path
     let prefix = ''
-    if (props && props.version) {
-      // If the version property is set, append it to the prefix
-      prefix = `${props.version ? '/v' + props.version : ''}`
-    }
+    if (props) {
+      if (props.version) {
+        // If the version property is set, append it to the prefix
+        prefix = `${props.version ? '/v' + props.version : ''}`
+      }
 
-    if (props && props.path) {
-      // If the path property is set, append it to the prefix
-      const basePath = props.path.startsWith('/') ? props.path.slice(1) : props.path
-      prefix = prefix + `/${basePath}`
+      if (props.path) {
+        // If the path property is set, append it to the prefix
+        const basePath = props.path.startsWith('/') ? props.path.slice(1) : props.path
+        prefix = prefix + `/${basePath}`
+      }
     }
 
     if (prefix !== '') {

@@ -58,7 +58,11 @@ class Nespress {
       return
     }
 
-    initialize(port)
+    try {
+      initialize(port)
+    } catch (error: any) {
+      log({ type: 'error', message: error.message })
+    }
   }
 }
 

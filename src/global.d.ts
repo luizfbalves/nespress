@@ -4,6 +4,11 @@ export type RouteMetadataProps = {
   handler: (...params: Parameters) => any
 }
 
+export type QueryParams = {
+  index: number
+  name?: string
+}
+
 export type LogParams = {
   message: string | object | number | boolean
   type?: 'default' | 'success' | 'error' | 'warning'

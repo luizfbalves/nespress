@@ -1,3 +1,5 @@
+import { safeDecorator } from './safe-decorator'
+
 /**
  * Creates a decorator that registers a route handler for a given HTTP method and path.
  * @param method - The HTTP method to register (e.g. 'get', 'post', 'put', etc.)
@@ -19,40 +21,28 @@ function createRouteHandler(method: string, path: string) {
  * Registers a route handler for a GET request.
  * @param path - The path to register the route for (e.g. '/', '/users', etc.)
  */
-export function GET(path: string) {
-  return createRouteHandler('get', path)
-}
+export const GET = (path: string) => safeDecorator(createRouteHandler('get', path))
 
 /**
  * Registers a route handler for a POST request.
  * @param path - The path to register the route for (e.g. '/', '/users', etc.)
  */
-export function POST(path: string) {
-  return createRouteHandler('post', path)
-}
+export const POST = (path: string) => safeDecorator(createRouteHandler('post', path))
 
 /**
  * Registers a route handler for a PUT request.
  * @param path - The path to register the route for (e.g. '/', '/users', etc.)
  */
-export function PUT(path: string) {
-  return createRouteHandler('put', path)
-}
+export const PUT = (path: string) => safeDecorator(createRouteHandler('put', path))
 
 /**
  * Registers a route handler for a DELETE request.
  * @param path - The path to register the route for (e.g. '/', '/users', etc.)
  */
-export function DELETE(path: string) {
-  return createRouteHandler('delete', path)
-}
+export const DEL = (path: string) => safeDecorator(createRouteHandler('delete', path))
 
 /**
  * Registers a route handler for a PATCH request.
  * @param path - The path to register the route for (e.g. '/', '/users', etc.)
  */
-export function PATCH(path: string) {
-  return createRouteHandler('patch', path)
-}
-
-//TODO adicionar validacao para so permitir o uso se estiver em uma classe decorada com CONRTOLLER
+export const PATCH = (path: string) => safeDecorator(createRouteHandler('patch', path))
