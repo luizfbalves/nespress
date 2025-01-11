@@ -3,6 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/npm/v/@luizfbalves/nespress.svg" alt="NPM version" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
+  <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/%40luizfbalves%2Fnespress">
 </p>
 
 > **Note:** This package is under constant changes and is not yet ready for production use.
