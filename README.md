@@ -67,6 +67,26 @@ export class UsersController {
       body,
     }
   }
+  
+  @GET('/findbyphone')
+  findByPhone(@QUERY('phone') phone: string) {
+      return {
+          statusCode: 200,
+          phone
+      }
+  }
+  
+  //just leave @QUERY decorator empty if you want to get all the query params
+  @GET('/findbyphoneorid')
+  findByPhone(@QUERY params: any) {
+      return {
+          statusCode: 200,
+          query: {
+              id: params.id,
+              phone: params.phone
+          }
+      }
+  }
 }
 ```
 
