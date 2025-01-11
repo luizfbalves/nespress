@@ -31,6 +31,12 @@ bun i @luizfbalves/nespress
 yarn add @luizfbalves/nespress
 ```
 
+Now you have to make sure you enabled this two tsconfig options to allow decorators.
+```bash
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+```
+
 ## how to use
 
 You can start the nesspress with just this:
