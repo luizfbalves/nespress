@@ -41,7 +41,7 @@ Now you have to make sure you enabled this two tsconfig options to allow decorat
 
 ## how to use
 
-You can start the nesspress with just this:
+You can start the nesspress like this:
 
 ```typescript
 import Nespress from '@luizfbalves/nespress'
@@ -51,7 +51,7 @@ const app = new Nespress({ controllers: [] })
 app.start(3333)
 ```
 
-But the api with warn you that you dont have controllers yet so you do this:
+But the api will warn you that you dont have controllers yet so you do this:
 
 ```typescript
 import { BODY, CONTROLLER, POST } from '@luizfbalves/nespress/decorators'
