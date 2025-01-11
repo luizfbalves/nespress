@@ -13,7 +13,6 @@ Nespress is a wrapper around Express that allows you to use decorators to define
 
 - Decorators for defining routes
 - Automatic registration of controllers and their routes
-- Support for Express middleware
 - Support for Express request and response objects
 
 ## Installation
