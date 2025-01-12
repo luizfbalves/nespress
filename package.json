@@ -1,6 +1,6 @@
 {
   "name": "@luizfbalves/nespress",
-  "version": "0.1.6",
+  "version": "0.1.10",
   "author": "Luiz F. B. Alves",
   "repository": {
     "type": "git",
@@ -26,10 +26,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun build.mjs --outdir ./dist",
+    "build": "bun run build.mjs --outdir ./dist",
     "build:link": "bun run build.mjs --outdir dist && bun link",
-    "dev": "bun run src/main.ts",
-    "publish": "bun run build && npm publish --access public"
+    "dev": "bun run src/main.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
