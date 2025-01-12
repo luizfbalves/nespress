@@ -1,21 +1,16 @@
-import { initialize, registerControllers } from '@/core'
-
 import 'reflect-metadata'
 import type { NesPressConfigParams } from './global'
 
-import { Buffer } from 'buffer'
 import { log } from './common'
-
-if (!globalThis.Buffer) {
-  globalThis.Buffer = Buffer
-}
+import { NespressCore } from './core'
 
 /**
- * Nespress
- * =========
  *
- * Nespress is a wrapper around express that allows you to use decorators to define routes.
- * It also includes a simple way to register controllers and their routes.
+ * NESPRESS
+ * ========
+ *
+ * Nespress is a wrapper around Express that allows you to use decorators to define routes.
+ * It also provides a simple way to register controllers and their routes. It is designed to be easy to use and to provide a simple way to create RESTful APIs.
  *
  * @example
  * import { Nespress } from '@luizfbalves/nespress'
@@ -27,7 +22,8 @@ if (!globalThis.Buffer) {
  * nespress.start()
  */
 class Nespress {
-  private registered = false
+  private core: NespressCore
+
   /**
    * Constructor
    * @param props - Configuration options
@@ -35,33 +31,25 @@ class Nespress {
    */
   constructor(props: NesPressConfigParams) {
     const { controllers } = props
-    this.register(controllers)
-  }
-
-  protected register(controllers: any[]) {
-    try {
-      registerControllers(controllers)
-      this.registered = true
-    } catch (error: any) {
-      log({ type: 'error', message: error.message })
-      this.registered = false
-    }
+    this.core = new NespressCore(controllers)
   }
 
   /**
    * Starts the server listening on the specified port.
    * @param port - The port to listen on. Defaults to 3000.
-   * @returns The express app instance
+   * @returns The Express app instance
    */
   start(port: number = 3000) {
-    if (!this.registered) {
-      return
+    if (!this.core.registered) {
+      log({ type: 'error', message: 'No controllers found! Please register at least one controller.' })
+      process.exit(2)
     }
-
     try {
-      initialize(port)
+      this.core.initialize(port)
+      return this.core.app
     } catch (error: any) {
       log({ type: 'error', message: error.message })
+      process.exit(1)
     }
   }
 }

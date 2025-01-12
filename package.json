@@ -1,13 +1,12 @@
 {
   "name": "@luizfbalves/nespress",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "Luiz F. B. Alves",
   "repository": {
     "type": "git",
     "url": "https://github.com/luizfbalves/nespress"
   },
   "dependencies": {
-    "buffer": "^6.0.3",
     "express": "^4.21.2",
     "reflect-metadata": "^0.2.2"
   },
@@ -29,7 +28,8 @@
   "scripts": {
     "build": "bun build.mjs --outdir ./dist",
     "build:link": "bun run build.mjs --outdir dist && bun link",
-    "dev": "bun run src/main.ts"
+    "dev": "bun run src/main.ts",
+    "publish": "bun run build && npm publish --access public"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
