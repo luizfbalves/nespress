@@ -1,6 +1,6 @@
 {
   "name": "@luizfbalves/nespress",
-  "version": "0.1.10",
+  "version": "0.1.15",
   "author": "Luiz F. B. Alves",
   "repository": {
     "type": "git",
@@ -26,17 +26,35 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun run build.mjs --outdir ./dist",
-    "build:link": "bun run build.mjs --outdir dist && bun link",
+    "build": "bun run build.mjs",
+    "build:link": "bun run build.mjs && bun link",
     "dev": "bun run src/main.ts"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
   "exports": {
-    ".": "./dist/main.js",
-    "./core": "./dist/core/index.js",
-    "./decorators": "./dist/decorators/index.js",
-    "./common": "./dist/common/index.js"
+    ".": {
+      "types": "./dist/main.d.ts",
+      "default": "./dist/main.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
+    "./decorators": {
+      "types": "./dist/decorators/index.d.ts",
+      "default": "./dist/decorators/index.js"
+    },
+    "./common": {
+      "types": "./dist/common/index.d.ts",
+      "default": "./dist/common/index.js"
+    }
   }
 }
