@@ -15,6 +15,6 @@ function bodyDecorator(target: Object, propertyKey: string | symbol, parameterIn
 /**
  * returns the express request.body object
  */
-export const BODY = safeDecorator(bodyDecorator)
+export const Body = safeDecorator(bodyDecorator)
 
 //TODO adicionar validacao para so permitir o uso se estiver em uma classe decorada com CONRTOLLER

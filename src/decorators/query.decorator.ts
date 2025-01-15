@@ -21,4 +21,4 @@ function decorator(query?: string) {
  * Registers the request.query string parameters.
  * @param query - The name of the query string parameter. If not provided, it will return all of them.
  */
-export const QUERY = (query?: string) => safeDecorator(decorator(query))
+export const Query = (query?: string) => safeDecorator(decorator(query))

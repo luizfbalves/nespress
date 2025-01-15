@@ -18,4 +18,4 @@ function requestDecorator(target: Object, propertyKey: string | symbol, paramete
 /**
  * get the express request object.
  */
-export const REQUEST = safeDecorator(requestDecorator)
+export const Request = safeDecorator(requestDecorator)

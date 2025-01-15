@@ -8,7 +8,7 @@ import type { ControllerMetadataParams, RouteMetadataProps } from '@/global'
  * @param props - The properties of the controller.
  * @returns A function that decorates a class with the CONTROLLER metadata.
  */
-export function CONTROLLER(props?: ControllerMetadataParams) {
+export function Controller(props?: ControllerMetadataParams) {
   return function (target: any) {
     // Get the route metadata from the class
     const Routes: RouteMetadataProps[] = Reflect.getMetadata('routes:metadata', target) || []

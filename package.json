@@ -1,6 +1,6 @@
 {
-  "name": "@luizfbalves/nespress",
-  "version": "0.1.15",
+  "name": "nespress",
+  "version": "0.1.1",
   "author": "Luiz F. B. Alves",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "typescript": "^5.0.0"
   },
   "files": [
-    "dist/",
+    "dist/*",
     "README.md"
   ],
   "main": "./dist/main.js",

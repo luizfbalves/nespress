@@ -15,4 +15,4 @@ function responseDecorator(target: Object, propertyKey: string | symbol, paramet
 /**
  *returns the express response object
  */
-export const RESPONSE = safeDecorator(responseDecorator)
+export const Response = safeDecorator(responseDecorator)
