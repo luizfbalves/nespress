@@ -1,9 +1,9 @@
 # Nespress
 
 <p align="center">
-  <img src="https://img.shields.io/npm/v/@luizfbalves/nespress.svg" alt="NPM version" />
+  <img src="https://img.shields.io/npm/v/nespress.svg" alt="NPM version" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
-  <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/%40luizfbalves%2Fnespress">
+  <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/nespress">
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/t/luizfbalves/nespress">
 </p>
 
