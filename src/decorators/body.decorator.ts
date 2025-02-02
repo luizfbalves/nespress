@@ -17,4 +17,4 @@ function bodyDecorator(target: Object, propertyKey: string | symbol, parameterIn
  */
 export const Body = safeDecorator(bodyDecorator)
 
-//TODO adicionar validacao para so permitir o uso se estiver em uma classe decorada com CONRTOLLER
+//TODO adicionar validacao para so permitir o uso se estiver em uma classe decorada com CONTROLLER

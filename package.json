@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "express": "^4.21.2",
+    "inversify": "^6.2.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
@@ -28,7 +29,7 @@
   },
   "scripts": {
     "build": "bun run build.mjs",
-    "build:link": "bun run build.mjs && bun link",
+    "build:link": "bun run build.ts && bun link",
     "dev": "bun run src/main.ts"
   },
   "peerDependencies": {

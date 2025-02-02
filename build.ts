@@ -6,5 +6,5 @@ await Bun.build({
   root: './src',
   minify: true,
   target: 'bun',
-  plugins: [dts({ outputDir: './dist' })],
+  plugins: [dts()],
 })
