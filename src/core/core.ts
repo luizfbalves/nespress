@@ -59,8 +59,6 @@ class NespressCore {
 
     this.controllers.forEach((controller) => {
       const routes: RouteMetadataProps[] = Reflect.getMetadata('routes:metadata', controller) || []
-
-      log({ message: `REGISTERING CONTROLLER ROUTES => {${controller.name}}...` })
       routes.forEach((route) => {
         this.registerRoute(controller, route)
       })
