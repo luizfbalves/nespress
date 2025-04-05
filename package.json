@@ -1,7 +1,7 @@
 {
   "name": "nespress",
-  "version": "0.1.2",
-  "author": "Luiz F. B. Alves",
+  "version": "1.0.0",
+  "author": "luizfbalves",
   "repository": {
     "type": "git",
     "url": "https://github.com/luizfbalves/nespress"
