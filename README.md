@@ -126,10 +126,10 @@ console.log('Server running at http://localhost:3000')
 Nespress supports dependency injection in NestJS style:
 
 ```typescript
-import { Controller, Get, INJECTABLE, INJECT } from 'nespress/decorators'
+import { Controller, Get, Injectable, INJECT } from 'nespress/decorators'
 import { Nespress } from 'nespress'
 
-@INJECTABLE()
+@Injectable()
 class UserService {
   private users = ['John', 'Mary', 'Peter']
 
@@ -169,7 +169,7 @@ app.start(3000)
 ### Controller Decorators
 
 - `@Controller(options)` - Defines a class as a controller
-- `@INJECTABLE()` - Marks a class as injectable
+- `@Injectable()` - Marks a class as Injectable
 - `@INJECT(Provider)` - Injects a provider into a property
 
 ### HTTP Method Decorators
