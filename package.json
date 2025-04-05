@@ -12,6 +12,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@types/bun": "latest",
     "@types/express": "^5.0.0",
     "@types/inversify": "^2.0.32",
@@ -34,7 +35,10 @@
   "scripts": {
     "build": "bun run build.mjs",
     "build:link": "bun run build.ts && bun link",
-    "dev": "bun run src/main.ts"
+    "dev": "bun run src/main.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
