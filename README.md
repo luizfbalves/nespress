@@ -1,122 +1,137 @@
-# Nespress
+# Nespress 🚀
+
+<p align="center">
+  <a href="README.pt-br.md">🇧🇷 Português Brasileiro</a>
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/npm/v/nespress.svg" alt="NPM version" />
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" />
-  <img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/nespress">
+  <img alt="NPM Downloads" src="https://img.shields.io/npm/dm/nespress">
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/t/luizfbalves/nespress">
 </p>
 
-> **Note:** This package is under constant changes and is not yet ready for production use.
+## 📖 About
 
-Nespress is a wrapper around Express that allows you to use decorators to define routes. It also includes a simple way to register controllers and their routes.
+**Nespress** is an elegant wrapper for Express that allows you to use decorators to define routes, similar to NestJS. The project makes it easy to develop RESTful APIs with TypeScript, providing a simple and intuitive way to register controllers and their routes.
 
-## Features
+> **Note:** This package is under active development and may undergo changes. Beta version available for community testing and feedback.
 
-- Decorators for defining routes
-- Automatic registration of controllers and their routes
-- Support for Express request and response objects
-- Dependency Injection support similar to NestJS
+## ✨ Features
 
-## Installation
+- 🏷️ **Decorators** for defining routes and HTTP methods
+- 🔄 **Automatic registration** of controllers and routes
+- 💉 **Dependency injection** similar to NestJS
+- 🧩 **Modular and extensible** - easy to integrate with other packages
+- 📦 **Zero configuration** - start using in seconds
+- 🔒 **Strong typing** with TypeScript
 
-You can install Nespress using npm:
+## 🚀 Installation
+
+Choose your favorite package manager:
 
 ```bash
-npm install @luizfbalves/nespress
+# NPM
+npm install nespress
+
+# Yarn
+yarn add nespress
+
+# Bun
+bun i nespress
 ```
 
-```bash
-bun i @luizfbalves/nespress
-```
+### TypeScript Configuration
 
-```bash
-yarn add @luizfbalves/nespress
-```
+Make sure to enable these options in your `tsconfig.json`:
 
-Now you have to make sure you enabled this two tsconfig options to allow decorators.
-
-```bash
+```json
+{
+  "compilerOptions": {
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
+  }
+}
 ```
 
-## how to use
+## 📝 Basic Usage
 
-You can start the nesspress like this:
+### Starting the server
 
 ```typescript
-import Nespress from '@luizfbalves/nespress'
+import Nespress from 'nespress'
 
 const app = new Nespress({ controllers: [] })
-
-app.start(3333)
+app.start(3000)
 ```
 
-But the api will warn you that you dont have controllers yet so you do this:
+### Creating a simple controller
 
 ```typescript
-import { BODY, Controller, Post } from '@luizfbalves/nespress/decorators'
+import { Controller, Get, Post, BODY, QUERY, PARAM } from 'nespress/decorators'
 
 @Controller({ path: '/users', version: 1 })
 export class UsersController {
-  constructor() {}
-
-  @Post('/all')
-  index(@BODY body: any) {
+  @Get()
+  getAll() {
     return {
       statusCode: 200,
-      body,
+      data: ['John', 'Mary', 'Peter'],
     }
   }
 
-  @Get('/findbyphone')
-  findByPhone(@QUERY('phone') phone: string) {
+  @Post()
+  create(@BODY body: any) {
     return {
-      statusCode: 200,
-      phone,
+      statusCode: 201,
+      message: 'User created',
+      data: body,
     }
   }
 
-  //just leave @QUERY decorator empty if you want to get all the query params
-  @Get('/findbyphoneorid')
-  findByPhone(@QUERY params: any) {
+  @Get('/:id')
+  getById(@PARAM('id') id: string) {
     return {
       statusCode: 200,
-      query: {
-        id: params.id,
-        phone: params.phone,
-      },
+      data: { id, name: 'User ' + id },
+    }
+  }
+
+  @Get('/search')
+  search(@QUERY('name') name: string) {
+    return {
+      statusCode: 200,
+      data: { name },
     }
   }
 }
 ```
 
-after creating a controller class go back to your main/index file and do this:
+### Registering the controller
 
 ```typescript
-import Nespress from '@luizfbalves/nespress'
-import { UsersController } from './test'
+import Nespress from 'nespress'
+import { UsersController } from './controllers/users.controller'
 
-const app = new Nespress({ controllers: [UsersController] })
+const app = new Nespress({
+  controllers: [UsersController],
+})
 
-app.start(3333)
+app.start(3000)
+console.log('Server running at http://localhost:3000')
 ```
 
-thats it youre ready to go!
+## 🧩 Dependency Injection
 
-## Using Dependency Injection (NestJS Style)
-
-Nespress supports dependency injection with a pattern similar to NestJS, where you register providers and controllers in the application configuration:
+Nespress supports dependency injection in NestJS style:
 
 ```typescript
-import { Controller, Get, INJECTABLE, INJECT } from '@luizfbalves/nespress/decorators'
-import { Nespress } from '@luizfbalves/nespress'
+import { Controller, Get, INJECTABLE, INJECT } from 'nespress/decorators'
+import { Nespress } from 'nespress'
 
-// 1. Create services and mark them as injectable
 @INJECTABLE()
 class UserService {
-  private users = ['João', 'Maria', 'Pedro']
+  private users = ['John', 'Mary', 'Peter']
 
   getUsers() {
     return this.users
@@ -127,16 +142,6 @@ class UserService {
   }
 }
 
-@INJECTABLE()
-class ProductService {
-  private products = ['Café', 'Açúcar', 'Leite']
-
-  getProducts() {
-    return this.products
-  }
-}
-
-// 2. Create controllers and inject services
 @Controller({ path: '/users', version: 1 })
 class UserController {
   @INJECT(UserService)
@@ -149,44 +154,96 @@ class UserController {
       data: this.userService.getUsers(),
     }
   }
-
-  @Get('/user/:id')
-  getUserById(id: string) {
-    return {
-      statusCode: 200,
-      data: this.userService.getUserById(parseInt(id)),
-    }
-  }
 }
 
-@Controller({ path: '/products', version: 1 })
-class ProductController {
-  @INJECT(ProductService)
-  private productService!: ProductService
-
-  @Get('/list')
-  getProducts() {
-    return {
-      statusCode: 200,
-      data: this.productService.getProducts(),
-    }
-  }
-}
-
-// 3. Configure Nespress with controllers and providers
 const app = new Nespress({
-  controllers: [UserController, ProductController],
-  providers: [UserService, ProductService],
+  controllers: [UserController],
+  providers: [UserService],
 })
 
-// 4. Start the server
-app.start(3333)
+app.start(3000)
 ```
 
-With this approach, Nespress will:
+## 📌 Available Decorators
 
-1. Register all providers in the dependency injection container
-2. Register all controllers in the container
-3. Automatically resolve and inject dependencies when routes are called
+### Controller Decorators
 
-This makes your application more modular and testable, following the principles of inversion of control.
+- `@Controller(options)` - Defines a class as a controller
+- `@INJECTABLE()` - Marks a class as injectable
+- `@INJECT(Provider)` - Injects a provider into a property
+
+### HTTP Method Decorators
+
+- `@Get(path?)` - Defines a GET route
+- `@Post(path?)` - Defines a POST route
+- `@Put(path?)` - Defines a PUT route
+- `@Delete(path?)` - Defines a DELETE route
+- `@Patch(path?)` - Defines a PATCH route
+
+### Parameter Decorators
+
+- `@BODY` - Accesses the request body
+- `@PARAM(name?)` - Accesses a URL parameter
+- `@QUERY(name?)` - Accesses a query parameter
+- `@HEADERS(name?)` - Accesses request headers
+
+## 🧪 Advanced Examples
+
+### Middlewares
+
+```typescript
+import { Controller, Get, Middleware } from 'nespress/decorators'
+
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (req.headers.authorization) {
+    next()
+  } else {
+    res.status(401).json({ message: 'Unauthorized' })
+  }
+}
+
+@Controller({ path: '/admin' })
+class AdminController {
+  @Get('/dashboard')
+  @Middleware(authMiddleware)
+  getDashboard() {
+    return {
+      statusCode: 200,
+      data: { message: 'Admin dashboard' },
+    }
+  }
+}
+```
+
+### Nested Controllers
+
+```typescript
+@Controller({ path: '/api', version: 1 })
+class ApiController {
+  @Controller({ path: '/users' })
+  class UsersController {
+    @Get()
+    getUsers() {
+      return { statusCode: 200, data: ['John', 'Mary'] };
+    }
+  }
+}
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add: awesome implementation'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📃 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">Made with ☕ and TypeScript.</p>

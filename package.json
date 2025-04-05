@@ -15,7 +15,10 @@
     "@types/bun": "latest",
     "@types/express": "^5.0.0",
     "@types/inversify": "^2.0.32",
-    "bun-plugin-dts": "^0.3.0"
+    "@types/supertest": "^6.0.3",
+    "bun-plugin-dts": "^0.3.0",
+    "supertest": "^7.1.0",
+    "vitest": "^3.1.1"
   },
   "description": "Nespress is a wrapper around express that allows you to use decorators to define routes. It also includes a simple way to register controllers and their routes.",
   "keywords": [
