@@ -22,4 +22,5 @@ export type ControllerMetadataParams = {
 
 export type NesPressConfigParams = {
   controllers: any[]
+  providers?: any[]
 }

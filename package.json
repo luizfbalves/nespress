@@ -8,12 +8,13 @@
   },
   "dependencies": {
     "express": "^4.21.2",
-    "inversify": "^6.2.1",
+    "inversify": "^7.5.0",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/express": "^5.0.0",
+    "@types/inversify": "^2.0.32",
     "bun-plugin-dts": "^0.3.0"
   },
   "description": "Nespress is a wrapper around express that allows you to use decorators to define routes. It also includes a simple way to register controllers and their routes.",

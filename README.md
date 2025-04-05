@@ -16,6 +16,7 @@ Nespress is a wrapper around Express that allows you to use decorators to define
 - Decorators for defining routes
 - Automatic registration of controllers and their routes
 - Support for Express request and response objects
+- Dependency Injection support similar to NestJS
 
 ## Installation
 
@@ -34,6 +35,7 @@ yarn add @luizfbalves/nespress
 ```
 
 Now you have to make sure you enabled this two tsconfig options to allow decorators.
+
 ```bash
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true
@@ -54,38 +56,38 @@ app.start(3333)
 But the api will warn you that you dont have controllers yet so you do this:
 
 ```typescript
-import { BODY, CONTROLLER, POST } from '@luizfbalves/nespress/decorators'
+import { BODY, Controller, Post } from '@luizfbalves/nespress/decorators'
 
-@CONTROLLER({ path: '/users', version: 1 })
+@Controller({ path: '/users', version: 1 })
 export class UsersController {
   constructor() {}
 
-  @POST('/all')
+  @Post('/all')
   index(@BODY body: any) {
     return {
       statusCode: 200,
       body,
     }
   }
-  
-  @GET('/findbyphone')
+
+  @Get('/findbyphone')
   findByPhone(@QUERY('phone') phone: string) {
-      return {
-          statusCode: 200,
-          phone
-      }
+    return {
+      statusCode: 200,
+      phone,
+    }
   }
-  
+
   //just leave @QUERY decorator empty if you want to get all the query params
-  @GET('/findbyphoneorid')
+  @Get('/findbyphoneorid')
   findByPhone(@QUERY params: any) {
-      return {
-          statusCode: 200,
-          query: {
-              id: params.id,
-              phone: params.phone
-          }
-      }
+    return {
+      statusCode: 200,
+      query: {
+        id: params.id,
+        phone: params.phone,
+      },
+    }
   }
 }
 ```
@@ -102,3 +104,89 @@ app.start(3333)
 ```
 
 thats it youre ready to go!
+
+## Using Dependency Injection (NestJS Style)
+
+Nespress supports dependency injection with a pattern similar to NestJS, where you register providers and controllers in the application configuration:
+
+```typescript
+import { Controller, Get, INJECTABLE, INJECT } from '@luizfbalves/nespress/decorators'
+import { Nespress } from '@luizfbalves/nespress'
+
+// 1. Create services and mark them as injectable
+@INJECTABLE()
+class UserService {
+  private users = ['João', 'Maria', 'Pedro']
+
+  getUsers() {
+    return this.users
+  }
+
+  getUserById(id: number) {
+    return this.users[id]
+  }
+}
+
+@INJECTABLE()
+class ProductService {
+  private products = ['Café', 'Açúcar', 'Leite']
+
+  getProducts() {
+    return this.products
+  }
+}
+
+// 2. Create controllers and inject services
+@Controller({ path: '/users', version: 1 })
+class UserController {
+  @INJECT(UserService)
+  private userService!: UserService
+
+  @Get('/list')
+  getUsers() {
+    return {
+      statusCode: 200,
+      data: this.userService.getUsers(),
+    }
+  }
+
+  @Get('/user/:id')
+  getUserById(id: string) {
+    return {
+      statusCode: 200,
+      data: this.userService.getUserById(parseInt(id)),
+    }
+  }
+}
+
+@Controller({ path: '/products', version: 1 })
+class ProductController {
+  @INJECT(ProductService)
+  private productService!: ProductService
+
+  @Get('/list')
+  getProducts() {
+    return {
+      statusCode: 200,
+      data: this.productService.getProducts(),
+    }
+  }
+}
+
+// 3. Configure Nespress with controllers and providers
+const app = new Nespress({
+  controllers: [UserController, ProductController],
+  providers: [UserService, ProductService],
+})
+
+// 4. Start the server
+app.start(3333)
+```
+
+With this approach, Nespress will:
+
+1. Register all providers in the dependency injection container
+2. Register all controllers in the container
+3. Automatically resolve and inject dependencies when routes are called
+
+This makes your application more modular and testable, following the principles of inversion of control.

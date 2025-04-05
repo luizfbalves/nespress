@@ -3,6 +3,7 @@ import type { NesPressConfigParams } from './global'
 
 import { log } from './common'
 import { NespressCore } from './core'
+import { container } from './core/inversify'
 
 /**
  *
@@ -16,7 +17,8 @@ import { NespressCore } from './core'
  * import { Nespress } from '@luizfbalves/nespress'
  *
  * const nespress = new Nespress({
- *   controllers: [MyController],
+ *   controllers: [UsersController],
+ *   providers: [UserService]
  * })
  *
  * nespress.start()
@@ -28,10 +30,61 @@ class Nespress {
    * Constructor
    * @param props - Configuration options
    * @param props.controllers - An array of controllers to register. Each controller should have the CONTROLLER decorator.
+   * @param props.providers - An array of providers (services) to register for dependency injection.
    */
   constructor(props: NesPressConfigParams) {
-    const { controllers } = props
+    const { controllers, providers = [] } = props
+
+    // Registra os providers no container
+    this.registerProviders(providers)
+
+    // Registra os controllers no container
+    this.registerControllers(controllers)
+
+    // Inicializa o core com os controllers
     this.core = new NespressCore(controllers)
+  }
+
+  /**
+   * Registra os providers no container de injeção de dependências
+   * @param providers - Array de classes providers
+   */
+  private registerProviders(providers: any[]) {
+    providers.forEach((provider) => {
+      if (!Reflect.hasMetadata('injectable:metadata', provider)) {
+        log({
+          type: 'warning',
+          message: `Provider ${provider.name} não possui o decorador @Injectable(). Isso pode causar problemas.`,
+        })
+      }
+
+      // Registra o provider no container
+      if (!container.isBound(provider)) {
+        container.bind(provider).toSelf()
+        log({ message: `REGISTRANDO PROVIDER => {${provider.name}}...` })
+      }
+    })
+  }
+
+  /**
+   * Registra os controllers no container de injeção de dependências
+   * @param controllers - Array de classes controllers
+   */
+  private registerControllers(controllers: any[]) {
+    controllers.forEach((controller) => {
+      if (!Reflect.hasMetadata('controller:metadata', controller)) {
+        log({
+          type: 'warning',
+          message: `Controller ${controller.name} não possui o decorador @Controller(). Isso pode causar problemas.`,
+        })
+      }
+
+      // Registra o controller no container
+      if (!container.isBound(controller)) {
+        container.bind(controller).toSelf()
+        log({ message: `REGISTRANDO CONTROLLER => {${controller.name}}...` })
+      }
+    })
   }
 
   /**
@@ -54,4 +107,4 @@ class Nespress {
   }
 }
 
-export default Nespress
+export { container, Nespress }
