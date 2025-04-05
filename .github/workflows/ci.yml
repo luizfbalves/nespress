@@ -1,0 +1,30 @@
+name: CI - Testes Automatizados
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Executar Testes 🧪
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código 📥
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun 🏃‍♂️
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Instalar dependências 📦
+        run: bun install
+
+      - name: Executar testes 🧪
+        run: bun test
+
+      - name: Verificar cobertura de código 📊
+        run: bun test --coverage
