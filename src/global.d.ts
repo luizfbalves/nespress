@@ -1,7 +1,7 @@
 export type RouteMetadataProps = {
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
   path: string
-  handler: (...params: Parameters) => any
+  handler: (...params: any[]) => unknown
 }
 
 export type QueryParams = {
