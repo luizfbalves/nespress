@@ -15,6 +15,9 @@ export function Controller(props?: ControllerMetadataParams) {
 
     Reflect.defineMetadata('controller:metadata', true, target)
 
+    // Marca explicitamente a classe como um controller
+    Object.defineProperty(target, '__isController', { value: true })
+
     // Set the prefix path
     let prefix = ''
     if (props) {
