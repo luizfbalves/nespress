@@ -3,13 +3,14 @@ import type { LogParams } from '@/global'
 export const log = (props: LogParams) => {
   const { type, message, jumpLine } = props
 
-  jumpLine === true && console.log('')
+  if (jumpLine) console.log('')
 
-  const date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())
+  const timestamp = new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date())
 
-  // TODO adicionar um prefixo com data e hora e id do processo no Node.js
-  const processId = process.pid // ID do processo no Node.js
-  const prefix = `\x1b[37m[${processId}] - [${date}]\x1b[0m` // Branco para a data e ID
+  const prefix = `\x1b[37m[${process.pid}] - [${timestamp}]\x1b[0m`
 
   switch (type) {
     case 'success':
