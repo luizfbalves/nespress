@@ -38,11 +38,11 @@ class Nespress {
     // Registra os providers no container
     this.registerProviders(providers)
 
-    // Registra os controllers no container
-    this.registerControllers(controllers)
+    // Registra os controllers no container e obtém apenas os válidos
+    const validControllers = this.registerControllers(controllers)
 
-    // Inicializa o core com os controllers
-    this.core = new NespressCore(controllers)
+    // Inicializa o core com os controllers válidos
+    this.core = new NespressCore(validControllers)
   }
 
   /**
@@ -70,13 +70,19 @@ class Nespress {
    * Registra os controllers no container de injeção de dependências
    * @param controllers - Array de classes controllers
    */
-  private registerControllers(controllers: any[]) {
+  private registerControllers(controllers: any[]): any[] {
+    const validControllers: any[] = []
     controllers.forEach((controller) => {
-      if (!Reflect.hasMetadata('controller:metadata', controller)) {
+      const isController =
+        Reflect.hasMetadata('controller:metadata', controller) ||
+        (controller as any).__isController
+
+      if (!isController) {
         log({
           type: 'warning',
-          message: `Controller ${controller.name} não possui o decorador @Controller(). Isso pode causar problemas.`,
+          message: `Controller ${controller.name} não possui o decorador @Controller(). Ele será ignorado.`,
         })
+        return
       }
 
       // Registra o controller no container
@@ -84,7 +90,10 @@ class Nespress {
         container.bind(controller).toSelf()
         log({ message: `REGISTRANDO CONTROLLER => {${controller.name}}...` })
       }
+
+      validControllers.push(controller)
     })
+    return validControllers
   }
 
   /**
