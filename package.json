@@ -33,7 +33,7 @@
     "tag": "beta"
   },
   "scripts": {
-    "build": "bun run build.mjs",
+    "build": "bun run build.ts",
     "build:link": "bun run build.ts && bun link",
     "dev": "bun run src/main.ts",
     "test": "bun test",
