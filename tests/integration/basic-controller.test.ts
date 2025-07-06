@@ -91,7 +91,7 @@ class MockNespressCore {
         // Pegar parâmetros do body
         const bodyParams = Reflect.getMetadata('body:metadata', controller, propertyKey) || []
 
-        this.app[method](path, async (req: any, res: any) => {
+        ;(this.app as any)[method](path, async (req: any, res: any) => {
           try {
             // Constrói os argumentos para o handler
             const args: any[] = []
