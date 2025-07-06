@@ -25,6 +25,7 @@ function Controller(props?: any) {
   return function (target: any) {
     // Definir metadados de controller
     Reflect.defineMetadata('controller:metadata', props, target)
+    Object.defineProperty(target, '__isController', { value: true })
 
     // Obter rotas existentes
     const routes = Reflect.getMetadata('routes:metadata', target) || []
@@ -71,6 +72,13 @@ describe('@Controller', () => {
     const metadata = Reflect.getMetadata('controller:metadata', TesteController)
     expect(metadata).toBeDefined()
     expect(metadata.path).toBe('/teste')
+  })
+
+  it('deve definir a flag __isController na classe', () => {
+    @Controller()
+    class FlagController {}
+
+    expect((FlagController as any).__isController).toBe(true)
   })
 
   it('deve lidar com versão corretamente', () => {
