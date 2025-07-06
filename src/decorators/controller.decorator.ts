@@ -14,6 +14,12 @@ export function Controller(props?: ControllerMetadataParams) {
     const Routes: RouteMetadataProps[] = Reflect.getMetadata('routes:metadata', target) || []
 
     Reflect.defineMetadata('controller:metadata', true, target)
+    Object.defineProperty(target, '__isController', {
+      value: true,
+      enumerable: false,
+      configurable: false,
+      writable: false,
+    })
 
     // Set the prefix path
     let prefix = ''
@@ -44,4 +50,3 @@ export function Controller(props?: ControllerMetadataParams) {
     }
   }
 }
-//TODO registrar uma property na classe decorada para informar que ela e um controller
