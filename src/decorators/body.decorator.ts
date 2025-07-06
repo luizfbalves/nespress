@@ -1,6 +1,9 @@
 import { safeDecorator } from './safe-decorator'
 
 function bodyDecorator(target: Object, propertyKey: string | symbol, parameterIndex: number) {
+  if (!Reflect.getMetadata('controller:metadata', target.constructor)) {
+    throw new Error('@BODY can only be used within classes decorated with @Controller.')
+  }
   if (typeof target.constructor.prototype[propertyKey] !== 'function' || typeof parameterIndex !== 'number') {
     throw new Error(`param decorator @BODY can only be applied into method params.`)
   }
@@ -16,5 +19,3 @@ function bodyDecorator(target: Object, propertyKey: string | symbol, parameterIn
  * returns the express request.body object
  */
 export const Body = safeDecorator(bodyDecorator)
-
-//TODO adicionar validacao para so permitir o uso se estiver em uma classe decorada com CONTROLLER
