@@ -7,7 +7,8 @@ function decorator(query?: string) {
       throw new Error(`param decorator @QUERY can only be applied into method params.`)
     }
     // Get the existing query string parameters
-    const queries: QueryParams[] = Reflect.getMetadata('query:metadata', target.constructor) || []
+    const queries: QueryParams[] =
+      Reflect.getMetadata('query:metadata', target.constructor, propertyKey) || []
 
     // Add the new parameter
     queries.push({ index: parameterIndex, name: query })
