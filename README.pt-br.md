@@ -59,7 +59,7 @@ Certifique-se de habilitar estas opções no seu `tsconfig.json`:
 ### Iniciando o servidor
 
 ```typescript
-import Nespress from 'nespress'
+import { Nespress } from 'nespress'
 
 const app = new Nespress({ controllers: [] })
 app.start(3000)
@@ -110,7 +110,7 @@ export class UsersController {
 ### Registrando o controlador
 
 ```typescript
-import Nespress from 'nespress'
+import { Nespress } from 'nespress'
 import { UsersController } from './controllers/users.controller'
 
 const app = new Nespress({
