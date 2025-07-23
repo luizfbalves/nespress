@@ -20,7 +20,9 @@ export type ControllerMetadataParams = {
   path?: string
 }
 
-export type NesPressConfigParams = {
-  controllers: any[]
-  providers?: any[]
+export type ClassType<T = any> = new (...args: any[]) => T
+
+export type NesPressConfigParams<C extends ClassType = ClassType, P extends ClassType = ClassType> = {
+  controllers: C[]
+  providers?: P[]
 }
