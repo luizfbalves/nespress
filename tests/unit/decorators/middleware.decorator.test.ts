@@ -1,6 +1,27 @@
 import 'reflect-metadata'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Middleware } from '@/decorators/middleware.decorator'
+
+// isolated metadata map similar to other decorator tests
+const metadataMap = new Map()
+const originalReflect = global.Reflect
+global.Reflect = {
+  ...originalReflect,
+  defineMetadata: (key: string, value: any, target: any, propertyKey?: string | symbol) => {
+    const targetKey = `${key}-${target.name || 'anonymous'}-${String(propertyKey || '')}`
+    metadataMap.set(targetKey, value)
+    return target
+  },
+  getMetadata: (key: string, target: any, propertyKey?: string | symbol) => {
+    const targetKey = `${key}-${target.name || 'anonymous'}-${String(propertyKey || '')}`
+    return metadataMap.get(targetKey)
+  },
+  hasMetadata: () => true,
+}
+
+beforeEach(() => {
+  metadataMap.clear()
+})
 
 describe('Middleware Decorator', () => {
   it('should register middleware for a method', () => {
