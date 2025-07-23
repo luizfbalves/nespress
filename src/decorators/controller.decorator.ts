@@ -21,8 +21,6 @@ export function Controller(props?: ControllerMetadataParams) {
       writable: false,
     })
 
-    // Marca explicitamente a classe como um controller
-    Object.defineProperty(target, '__isController', { value: true })
 
     // Set the prefix path
     let prefix = ''
