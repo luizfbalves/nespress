@@ -187,6 +187,10 @@ app.start(3000)
 - `@QUERY(name?)` - Acessa um parâmetro de consulta
 - `@HEADERS(name?)` - Acessa os cabeçalhos da requisição
 
+### Decorador de Middleware
+
+- `@Middleware(fn)` - Registra um middleware para o método de rota
+
 ## 🧪 Exemplos Avançados
 
 ### Middlewares

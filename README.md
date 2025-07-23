@@ -187,6 +187,10 @@ app.start(3000)
 - `@QUERY(name?)` - Accesses a query parameter
 - `@HEADERS(name?)` - Accesses request headers
 
+### Middleware Decorator
+
+- `@Middleware(fn)` - Registers middleware for a route method
+
 ## 🧪 Advanced Examples
 
 ### Middlewares
