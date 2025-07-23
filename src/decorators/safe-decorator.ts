@@ -4,7 +4,7 @@ export function safeDecorator(decorator: Function) {
       decorator(...args)
     } catch (error) {
       console.error(`DecoratorError => ${(error as Error).message}`)
-      process.exit(1)
+      throw error
     }
   }
 }
