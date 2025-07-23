@@ -6,7 +6,7 @@ import type { QueryParams, RouteMetadataProps } from '../global'
 import { container } from './inversify'
 
 // Interface para plugins
-interface NespressPlugin {
+export interface NespressPlugin {
   register: (app: express.Application) => void
   name: string
 }
