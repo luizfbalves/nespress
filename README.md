@@ -121,6 +121,20 @@ app.start(3000)
 console.log('Server running at http://localhost:3000')
 ```
 
+### API documentation
+
+After registering your controllers you can generate an OpenAPI specification.
+Simply call `generateDocs()` on the `NespressCore` instance and access
+`/api-docs`:
+
+```typescript
+import { NespressCore } from 'nespress/core'
+
+const core = new NespressCore([UsersController])
+core.generateDocs()
+core.initialize(3000)
+```
+
 ## 🧩 Dependency Injection
 
 Nespress supports dependency injection in NestJS style:

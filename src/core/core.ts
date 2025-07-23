@@ -17,6 +17,7 @@ class NespressCore {
   public registered = false
   private globalMiddlewares: any[] = []
   private plugins: NespressPlugin[] = []
+  public swaggerDocs: any = {}
 
   constructor(controllers: Function[] = []) {
     this.expressInstance.use(express.json())
@@ -145,8 +146,7 @@ class NespressCore {
 
   // Método para gerar documentação
   generateDocs() {
-    // Gera documentação Swagger baseada nos metadados dos controllers
-    const swaggerDocs = {
+    const swaggerDocs: any = {
       openapi: '3.0.0',
       info: {
         title: 'API gerada pelo Nespress',
@@ -155,15 +155,90 @@ class NespressCore {
       paths: {},
     }
 
-    // Percorrer controllers e extrair rotas para documentação
     this.controllers.forEach((controller) => {
       const routes: RouteMetadataProps[] = Reflect.getMetadata('routes:metadata', controller) || []
-      // Adicionar rotas ao swagger...
+
+      routes.forEach((route) => {
+        const originalPath = route.path
+        const openapiPath = originalPath.replace(/:([^/]+)/g, '{$1}')
+
+        if (!swaggerDocs.paths[openapiPath]) {
+          swaggerDocs.paths[openapiPath] = {}
+        }
+
+        const method = route.method.toLowerCase()
+        const handlerName = route.handler.name
+
+        const params: any[] = []
+
+        const pathParams = [...originalPath.matchAll(/:([^/]+)/g)].map((m) => m[1])
+        pathParams.forEach((name) => {
+          params.push({
+            name,
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          })
+        })
+
+        const queryMetadata: QueryParams[] =
+          Reflect.getMetadata('query:metadata', controller, handlerName) || []
+        queryMetadata.forEach((q) => {
+          if (q.name) {
+            params.push({
+              name: q.name,
+              in: 'query',
+              required: false,
+              schema: { type: 'string' },
+            })
+          }
+        })
+
+        const headersMetadata: { index: number; name?: string }[] =
+          Reflect.getMetadata('headers:metadata', controller, handlerName) || []
+        headersMetadata.forEach((h) => {
+          if (h.name) {
+            params.push({
+              name: h.name,
+              in: 'header',
+              required: false,
+              schema: { type: 'string' },
+            })
+          }
+        })
+
+        const bodyMetadata: number[] =
+          Reflect.getMetadata('body:metadata', controller, handlerName) || []
+
+        const operation: any = {
+          tags: [controller.name],
+          operationId: handlerName,
+          responses: { '200': { description: 'Successful response' } },
+        }
+
+        if (params.length > 0) {
+          operation.parameters = params
+        }
+
+        if (bodyMetadata.length > 0) {
+          operation.requestBody = {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { type: 'object' },
+              },
+            },
+          }
+        }
+
+        swaggerDocs.paths[openapiPath][method] = operation
+      })
     })
 
-    // Rota para acessar documentação
+    this.swaggerDocs = swaggerDocs
+
     this.expressInstance.get('/api-docs', (req, res) => {
-      res.json(swaggerDocs)
+      res.json(this.swaggerDocs)
     })
   }
 
