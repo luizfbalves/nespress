@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import type { NesPressConfigParams } from './global'
+import type { ClassType, NesPressConfigParams } from './global'
 
 import { log } from './common'
 import { NespressCore } from './core'
@@ -23,7 +23,7 @@ import { container } from './core/inversify'
  *
  * nespress.start()
  */
-class Nespress {
+class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType> {
   private core: NespressCore
 
   /**
@@ -32,7 +32,7 @@ class Nespress {
    * @param props.controllers - An array of controllers to register. Each controller should have the CONTROLLER decorator.
    * @param props.providers - An array of providers (services) to register for dependency injection.
    */
-  constructor(props: NesPressConfigParams) {
+  constructor(props: NesPressConfigParams<C, P>) {
     const { controllers, providers = [] } = props
 
     // Registra os providers no container
@@ -49,7 +49,7 @@ class Nespress {
    * Registra os providers no container de injeção de dependências
    * @param providers - Array de classes providers
    */
-  private registerProviders(providers: any[]) {
+  private registerProviders(providers: P[]) {
     providers.forEach((provider) => {
       if (!Reflect.hasMetadata('injectable:metadata', provider)) {
         log({
@@ -70,8 +70,8 @@ class Nespress {
    * Registra os controllers no container de injeção de dependências
    * @param controllers - Array de classes controllers
    */
-  private registerControllers(controllers: any[]): any[] {
-    const validControllers: any[] = []
+  private registerControllers(controllers: C[]): C[] {
+    const validControllers: C[] = []
     controllers.forEach((controller) => {
       const isController =
         Reflect.hasMetadata('controller:metadata', controller) ||
