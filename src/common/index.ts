@@ -27,3 +27,5 @@ export const log = ({ type = 'default', message, jumpLine }: LogParams) => {
       break
   }
 }
+
+export { handleError } from './error-handler'
