@@ -135,9 +135,12 @@ export class ErrorFormatter {
     const formattedLines: string[] = []
 
     for (const line of lines) {
-      // Pular linhas de node_modules/minified code
-      if (line.includes('node_modules/') && 
-          (line.includes('.js:') || line.includes('.mjs:'))) {
+      // Pular linhas de node_modules (vários formatos possíveis)
+      if (line.includes('node_modules/') || 
+          line.includes('node_modules\\') ||
+          (line.includes('.js:') && line.includes('node_modules')) ||
+          (line.includes('.mjs:') && line.includes('node_modules')) ||
+          line.includes('tsx/dist/')) {
         continue
       }
 
