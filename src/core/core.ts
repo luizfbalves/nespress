@@ -1,4 +1,4 @@
-import { log } from '@/common'
+import { log, logError } from '@/common'
 import express, { type Request, type Response } from 'express'
 
 import { resolveDependencies } from '../decorators/inject.decorator'
@@ -55,7 +55,12 @@ class NespressCore {
    */
   registerControllers() {
     if (!this.controllers || this.controllers.length === 0) {
-      throw new Error('No controllers found! Please register at least one controller.')
+      const error = new Error('No controllers found! Please register at least one controller.')
+      logError(error, {
+        context: 'NespressCore.registerControllers() - Registro de controllers',
+        showStack: false
+      })
+      throw error
     }
 
     this.controllers.forEach((controller) => {
@@ -88,10 +93,24 @@ class NespressCore {
         response.json(result)
       } catch (error: any) {
         const statusCode = error.statusCode || 500
+        
+        // Formatar erro para resposta da API
+        let errorMessage = error.message || 'Erro interno do servidor'
+        let errorSuggestions: string[] = []
+        
+        // Adicionar sugestões baseadas no tipo de erro
+        if (error.message.includes('reflect-metadata')) {
+          errorSuggestions = [
+            'Verifique se os decorators estão sendo usados corretamente',
+            'Importe "reflect-metadata" no início do arquivo'
+          ]
+        }
+        
         const errorResponse = {
-          message: error.message || 'Erro interno do servidor',
+          message: errorMessage,
           code: error.code,
-          stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+          suggestions: errorSuggestions.length > 0 ? errorSuggestions : undefined,
+          stack: process.env.NODE_ENV !== 'production' ? this.formatApiStack(error.stack) : undefined,
         }
         response.status(statusCode).json(errorResponse)
       }
@@ -112,6 +131,28 @@ class NespressCore {
     this.buildParamsFromMetadata(params, responseMetadata, response)
 
     return params
+  }
+
+  /**
+   * Formata o stack trace para respostas de API
+   */
+  private formatApiStack(stack?: string): string | undefined {
+    if (!stack) return undefined
+    
+    const lines = stack.split('\n')
+    const relevantLines: string[] = []
+    
+    for (const line of lines) {
+      // Manter apenas linhas do código do usuário
+      if (line.includes('/src/') && !line.includes('node_modules')) {
+        relevantLines.push(line.trim())
+      }
+      
+      // Limitar para não sobrecarregar a resposta
+      if (relevantLines.length >= 5) break
+    }
+    
+    return relevantLines.length > 0 ? relevantLines.join('\n') : undefined
   }
 
   private buildParamsFromMetadata(params: any[], metadata: number[] | QueryParams[], value: any) {

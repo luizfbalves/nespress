@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import type { ControllerMetadataParams, RouteMetadataProps } from '@/global'
 
 /**
@@ -20,6 +21,9 @@ export function Controller(props?: ControllerMetadataParams) {
       configurable: false,
       writable: false,
     })
+
+    // Marcar como injetável para permitir injeção de dependências
+    injectable()(target)
 
 
     // Set the prefix path

@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify'
 import 'reflect-metadata'
 import { container } from '../core/inversify'
+import { logError } from '../common'
 
 /**
  * Decorador para injetar serviços em propriedades de uma classe.
@@ -16,11 +17,19 @@ import { container } from '../core/inversify'
  * }
  */
 export function Inject(serviceIdentifier: any) {
-  return function (target: Object, propertyKey: string) {
-    // Salva os metadados de injeção na classe alvo
-    const injectMetadata = Reflect.getMetadata('inject:metadata', target.constructor) || {}
-    injectMetadata[propertyKey] = serviceIdentifier
-    Reflect.defineMetadata('inject:metadata', injectMetadata, target.constructor)
+  return function (target: Object, propertyKey: string | symbol | undefined, parameterIndex?: number) {
+    // Se parameterIndex está definido, é para parâmetro do construtor
+    if (typeof parameterIndex === 'number') {
+      // Usa o inject do Inversify para parâmetros do construtor
+      return inject(serviceIdentifier)(target, propertyKey, parameterIndex)
+    }
+    
+    // Se não, é para propriedade (comportamento anterior)
+    if (typeof propertyKey === 'string') {
+      const injectMetadata = Reflect.getMetadata('inject:metadata', target.constructor) || {}
+      injectMetadata[propertyKey] = serviceIdentifier
+      Reflect.defineMetadata('inject:metadata', injectMetadata, target.constructor)
+    }
   }
 }
 
@@ -88,9 +97,16 @@ export function resolveDependencies(target: any) {
     try {
       return container.get(paramType)
     } catch (error) {
-      console.warn(
-        `Não foi possível resolver a dependência do tipo ${paramType.name} para o construtor de ${target.name}`
-      )
+      const errorObj = error as Error
+      logError(errorObj, {
+        context: `Dependency injection - Construtor de ${target.name}`,
+        suggestions: [
+          `Adicione o decorator @Injectable() na classe ${paramType.name}`,
+          `Registre ${paramType.name} no array "providers" do construtor Nespress`,
+          'Verifique se a dependência está corretamente exportada'
+        ],
+        showStack: false
+      })
       // Retorna undefined se não conseguir resolver
       return undefined
     }
@@ -109,7 +125,17 @@ export function resolveDependencies(target: any) {
     try {
       instance[propertyKey] = container.get(serviceIdentifier)
     } catch (error) {
-      console.warn(`Não foi possível resolver a dependência para ${propertyKey} em ${target.name}`)
+      const errorObj = error as Error
+      const serviceName = typeof serviceIdentifier === 'string' ? serviceIdentifier : serviceIdentifier.name
+      logError(errorObj, {
+        context: `Dependency injection - Propriedade ${propertyKey} em ${target.name}`,
+        suggestions: [
+          `Adicione o decorator @Injectable() na classe ${serviceName}`,
+          `Registre ${serviceName} no array "providers" do construtor Nespress`,
+          `Verifique se a propriedade ${propertyKey} está corretamente decorada com @Inject(${serviceName})`
+        ],
+        showStack: false
+      })
     }
   }
 

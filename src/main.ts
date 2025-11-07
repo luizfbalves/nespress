@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import type { ClassType, NesPressConfigParams } from './global'
 
-import { log } from './common'
+import { log, logError } from './common'
 import { NespressCore } from './core'
 import { container } from './core/inversify'
 
@@ -35,14 +35,27 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
   constructor(props: NesPressConfigParams<C, P>) {
     const { controllers, providers = [] } = props
 
-    // Registra os providers no container
-    this.registerProviders(providers)
+    try {
+      // Registra os providers no container PRIMEIRO
+      this.registerProviders(providers)
 
-    // Registra os controllers no container e obtém apenas os válidos
-    const validControllers = this.registerControllers(controllers)
+      // Registra os controllers no container APÓS os providers
+      const validControllers = this.registerControllers(controllers)
 
-    // Inicializa o core com os controllers válidos
-    this.core = new NespressCore(validControllers)
+      // Inicializa o core com os controllers válidos
+      this.core = new NespressCore(validControllers)
+    } catch (error: any) {
+      logError(error, {
+        context: 'Nespress.constructor() - Inicialização da aplicação',
+        suggestions: [
+          'Verifique se todos os controllers têm o decorator @Controller()',
+          'Verifique se todos os providers têm o decorator @Injectable()',
+          'Verifique se "emitDecoratorMetadata": true está no tsconfig.json',
+          'Verifique se "reflect-metadata" foi importado no início do arquivo'
+        ]
+      })
+      throw error
+    }
   }
 
   /**
@@ -87,8 +100,21 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
 
       // Registra o controller no container
       if (!container.isBound(controller)) {
-        container.bind(controller).toSelf()
-        log({ message: `REGISTRANDO CONTROLLER => {${controller.name}}...` })
+        try {
+          container.bind(controller).toSelf()
+          log({ message: `REGISTRANDO CONTROLLER => {${controller.name}}...` })
+        } catch (error) {
+          logError(error as Error, {
+            context: `registerControllers() - Registro do controller ${controller.name}`,
+            suggestions: [
+              'Verifique se o controller tem o decorator @Controller()',
+              'Verifique se as dependências do construtor estão corretamente injetadas',
+              'Use @Inject(ServiceClass) para parâmetros do construtor',
+              'Certifique-se que todos os serviços foram registrados no array "providers"'
+            ]
+          })
+          throw error
+        }
       }
 
       validControllers.push(controller)
@@ -103,14 +129,25 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
    */
   start(port: number = 3000) {
     if (!this.core.registered) {
-      log({ type: 'error', message: 'No controllers found! Please register at least one controller.' })
+      const error = new Error('No controllers found! Please register at least one controller.')
+      logError(error, {
+        context: 'Nespress.start() - Verificação de controllers registrados',
+        showStack: false
+      })
       process.exit(2)
     }
     try {
       this.core.initialize(port)
       return this.core.app
     } catch (error: any) {
-      log({ type: 'error', message: error.message })
+      logError(error, {
+        context: 'Nespress.start() - Inicialização do servidor',
+        suggestions: [
+          'Verifique se todas as dependências estão instaladas',
+          'Verifique se não há conflitos de porta',
+          'Verifique se a configuração está correta'
+        ]
+      })
       process.exit(1)
     }
   }
