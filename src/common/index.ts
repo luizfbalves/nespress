@@ -29,3 +29,4 @@ export const log = ({ type = 'default', message, jumpLine }: LogParams) => {
 }
 
 export { handleError } from './error-handler'
+export { ErrorFormatter, formatError, logError } from './error-formatter'

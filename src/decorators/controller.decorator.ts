@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import type { ControllerMetadataParams, RouteMetadataProps } from '@/global'
 
 /**
@@ -20,6 +21,17 @@ export function Controller(props?: ControllerMetadataParams) {
       configurable: false,
       writable: false,
     })
+
+    // Marcar como injetável para permitir injeção de dependências
+    // Verificar se injectable está disponível (evita erros em testes com mocks)
+    try {
+      injectable()(target)
+    } catch (error) {
+      // Ignorar erros em ambientes de teste onde Reflect pode estar mockado
+      if (process.env.NODE_ENV !== 'test') {
+        console.warn('Warning: Failed to mark controller as injectable:', error)
+      }
+    }
 
 
     // Set the prefix path
