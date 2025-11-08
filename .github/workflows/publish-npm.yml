@@ -98,17 +98,30 @@ jobs:
           bun run --bun node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); pkg.version = '${{ steps.version.outputs.version }}'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');"
           echo "package.json atualizado com versão ${{ steps.version.outputs.version }}"
 
-      - name: Build project (if needed)
+      - name: Build project
         run: |
-          # Adicione comandos de build aqui se necessário
-          # Por exemplo: bun run build
-          echo "Build step - adicione comandos de build se necessário"
+          echo "🔨 Construindo o projeto..."
+          bun run build
+          echo "✅ Build concluído!"
+
+          # Verificar se o diretório dist foi criado
+          if [ ! -d "dist" ]; then
+            echo "❌ Erro: diretório 'dist' não foi criado após o build"
+            exit 1
+          fi
+
+          echo "📦 Arquivos no dist:"
+          ls -la dist/ || echo "Diretório dist vazio ou não encontrado"
 
       - name: Setup Node.js for npm publish (OIDC)
         uses: actions/setup-node@v4
         with:
           registry-url: "https://registry.npmjs.org"
           node-version: "20"
+          # OIDC é habilitado automaticamente quando:
+          # 1. registry-url está configurado
+          # 2. permissions.id-token: write está definido (já está no job)
+          # 3. Trusted Publisher está configurado no npm
 
       - name: Validate package.json before publish
         run: |
@@ -153,15 +166,54 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Verify OIDC authentication setup
+        run: |
+          echo "=== Verificando configuração OIDC ==="
+          echo "GitHub Actor: ${{ github.actor }}"
+          echo "GitHub Repository: ${{ github.repository }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "GitHub Event: ${{ github.event_name }}"
+          echo ""
+          echo "Registry configurado:"
+          npm config get registry
+          echo ""
+          echo "⚠️  Verifique se o Trusted Publisher está configurado corretamente:"
+          echo "   - Owner: luizfbalves"
+          echo "   - Repository: nespress"
+          echo "   - Workflow filename: publish-npm.yml (deve corresponder EXATAMENTE, incluindo extensão .yml)"
+          echo ""
+          echo "Acesse: https://www.npmjs.com/settings/luizfbalves/features"
+          echo ""
+          echo "Testando acesso ao pacote..."
+          PACKAGE_NAME=$(bun run --bun node -p "require('./package.json').name")
+          npm view "$PACKAGE_NAME" name 2>&1 | head -1 || echo "Não foi possível acessar o pacote (pode ser normal se for primeira publicação)"
+
       - name: Publish to npm using OIDC (Trusted Publishers)
         if: steps.check_version.outputs.exists != 'true'
         run: |
-          echo "Publicando no npm..."
-          npm publish --access public
+          echo "📦 Publicando no npm usando OIDC (Trusted Publishers)..."
+          echo ""
+          echo "Configuração:"
+          echo "  - Registry: https://registry.npmjs.org"
+          echo "  - Package: $(bun run --bun node -p "require('./package.json').name")"
+          echo "  - Version: $(bun run --bun node -p "require('./package.json').version")"
+          echo ""
+
+          # Tentar publicar com informações de debug
+          npm publish --access public --verbose || {
+            echo ""
+            echo "❌ Erro ao publicar. Possíveis causas:"
+            echo "1. Trusted Publisher não configurado corretamente no npm"
+            echo "2. Workflow filename não corresponde exatamente: publish-npm.yml"
+            echo "3. Repository/Organization não corresponde: luizfbalves/nespress"
+            echo "4. Permissões do workflow não incluem id-token: write"
+            echo ""
+            echo "Verifique: https://www.npmjs.com/settings/luizfbalves/features"
+            exit 1
+          }
         continue-on-error: false
         # OIDC é usado automaticamente quando id-token: write está nas permissions
         # Não é necessário NPM_TOKEN quando usando Trusted Publishers
-        # Se falhar, verifique se o Trusted Publisher está configurado no npm
 
       - name: Skip publish if version exists
         if: steps.check_version.outputs.exists == 'true'
