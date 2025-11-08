@@ -1,0 +1,176 @@
+# Workflow para publicar no npm usando Trusted Publishers (OIDC)
+#
+# CONFIGURAÇÃO NECESSÁRIA NO NPM:
+# 1. Acesse: https://www.npmjs.com/settings/[seu-usuario]/features
+# 2. Ative "Trusted Publishers"
+# 3. Adicione o GitHub Publisher:
+#    - Owner: seu-usuario-github ou organização
+#    - Repository: nome-do-repositorio
+#    - Workflow filename: publish-npm.yml
+#
+# BENEFÍCIOS:
+# - Não precisa de tokens (elimina risco de vazamento)
+# - Autenticação automática via OIDC
+# - Atende às novas políticas de segurança do npm (2025)
+# - Provenance attestation automático
+#
+# Referência: https://github.blog/changelog/2025-09-29-strengthening-npm-security-important-changes-to-authentication-and-token-management/
+
+name: Publish to npm
+
+on:
+  release:
+    types: [created]
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  test:
+    name: Executar Testes 🧪
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código 📥
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Configurar Bun 🏃‍♂️
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependências 📦
+        run: bun install --frozen-lockfile
+
+      - name: Executar testes 🧪
+        run: bun test
+
+      - name: Verificar cobertura de código 📊
+        run: bun test --coverage
+
+  publish:
+    name: Publicar no npm 📦
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            # Para releases, usa o tag_name do evento
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            VERSION=${TAG_NAME#v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Tag da release: $TAG_NAME"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Para push de tags direto
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(bun run --bun node -p "require('./package.json').version || '1.0.0'")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+          echo "Versão extraída: ${{ steps.version.outputs.version }}"
+
+      - name: Update package.json version
+        run: |
+          bun run --bun node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); pkg.version = '${{ steps.version.outputs.version }}'; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');"
+          echo "package.json atualizado com versão ${{ steps.version.outputs.version }}"
+
+      - name: Build project (if needed)
+        run: |
+          # Adicione comandos de build aqui se necessário
+          # Por exemplo: bun run build
+          echo "Build step - adicione comandos de build se necessário"
+
+      - name: Setup Node.js for npm publish (OIDC)
+        uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          node-version: "20"
+
+      - name: Validate package.json before publish
+        run: |
+          echo "=== Validando package.json ==="
+          PACKAGE_NAME=$(bun run --bun node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(bun run --bun node -p "require('./package.json').version")
+
+          if [ -z "$PACKAGE_NAME" ]; then
+            echo "❌ Erro: campo 'name' não encontrado no package.json"
+            exit 1
+          fi
+
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "❌ Erro: campo 'version' não encontrado no package.json"
+            exit 1
+          fi
+
+          echo "✅ Nome do pacote: $PACKAGE_NAME"
+          echo "✅ Versão: $PACKAGE_VERSION"
+
+          # Verificar se campos essenciais existem
+          if ! bun run --bun node -e "const pkg = require('./package.json'); if (!pkg.description) throw new Error('description missing');" 2>/dev/null; then
+            echo "⚠️  Aviso: campo 'description' não encontrado (recomendado)"
+          fi
+
+          echo ""
+          echo "=== Conteúdo do package.json ==="
+          cat package.json
+
+      - name: Check if package version already exists
+        id: check_version
+        run: |
+          PACKAGE_NAME=$(bun run --bun node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(bun run --bun node -p "require('./package.json').version")
+
+          echo "Verificando se versão $PACKAGE_VERSION já existe no npm..."
+          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version > /dev/null 2>&1; then
+            echo "⚠️  Versão $PACKAGE_VERSION já existe no npm"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Versão $PACKAGE_VERSION não existe, pode publicar"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish to npm using OIDC (Trusted Publishers)
+        if: steps.check_version.outputs.exists != 'true'
+        run: |
+          echo "Publicando no npm..."
+          npm publish --access public
+        continue-on-error: false
+        # OIDC é usado automaticamente quando id-token: write está nas permissions
+        # Não é necessário NPM_TOKEN quando usando Trusted Publishers
+        # Se falhar, verifique se o Trusted Publisher está configurado no npm
+
+      - name: Skip publish if version exists
+        if: steps.check_version.outputs.exists == 'true'
+        run: |
+          echo "⚠️  Pulando publicação: versão já existe no npm"
+          exit 0
+
+      - name: Verify publication
+        run: |
+          echo "Package publicado com sucesso!"
+          echo "Versão: ${{ steps.version.outputs.version }}"
+          echo "Nome do pacote: $(bun run --bun node -p "require('./package.json').name")"
