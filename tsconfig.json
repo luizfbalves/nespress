@@ -24,5 +24,6 @@
       "@common/*": ["./src/common/*"],
       "@decorators/*": ["./src/decorators/*"]
     }
-  }
+  },
+  "include": ["src/**/*", "types.d.ts"]
 }

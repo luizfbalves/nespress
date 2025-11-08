@@ -8,7 +8,9 @@ function bodyDecorator(target: Object, propertyKey: string | symbol, parameterIn
     throw new Error(`param decorator @BODY can only be applied into method params.`)
   }
 
-  if (!target.constructor.__isController && !Reflect.getMetadata('controller:metadata', target.constructor)) {
+  // Verificar se é um controller usando type assertion para evitar erro de tipo
+  const constructor = target.constructor as any
+  if (!constructor.__isController && !Reflect.getMetadata('controller:metadata', target.constructor)) {
     throw new Error(`@BODY decorator can only be used within classes decorated with @Controller`)
   }
 
