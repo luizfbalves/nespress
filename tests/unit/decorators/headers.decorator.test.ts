@@ -1,8 +1,8 @@
 import 'reflect-metadata'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { Headers, HEADERS } from '../../../src/decorators/headers.decorator'
+import { Headers } from '../../../src/decorators/headers.decorator'
 
-describe('@HEADERS decorator', () => {
+describe('@Headers decorator', () => {
   beforeEach(() => {
     // Clear metadata before each test
     Reflect.metadata = Reflect.metadata || ((key, value) => (target: any, propertyKey?: string | symbol) => {})
@@ -55,22 +55,6 @@ describe('@HEADERS decorator', () => {
     })
   })
 
-  describe('HEADERS alias', () => {
-    it('should work identically to Headers', () => {
-      class HeadersAliasController {
-        getHeaderUsingAlias(@HEADERS('x-custom-header') customHeader: string) {
-          return { customHeader }
-        }
-      }
-
-      const metadata = Reflect.getMetadata('headers:metadata', HeadersAliasController, 'getHeaderUsingAlias')
-
-      expect(metadata).toBeDefined()
-      expect(metadata.length).toBe(1)
-      expect(metadata[0].index).toBe(0)
-      expect(metadata[0].name).toBe('x-custom-header')
-    })
-  })
 
   describe('Headers decorator error handling', () => {
     it('should throw error when not applied to method parameter', () => {
@@ -79,7 +63,7 @@ describe('@HEADERS decorator', () => {
         const decorator = Headers('auth')
         // Simulating wrong usage - applying to non-method
         decorator(target, 'nonExistentMethod', 'not-a-number')
-      }).toThrow('param decorator @HEADERS can only be applied into method params.')
+      }).toThrow('param decorator @Headers can only be applied into method params.')
     })
 
     it('should throw error when parameterIndex is not a number', () => {
@@ -92,7 +76,7 @@ describe('@HEADERS decorator', () => {
         const decorator = Headers('auth')
         // Simulating wrong parameterIndex type
         decorator(target, 'someMethod', 'invalid' as any)
-      }).toThrow('param decorator @HEADERS can only be applied into method params.')
+      }).toThrow('param decorator @Headers can only be applied into method params.')
     })
   })
 
@@ -100,8 +84,6 @@ describe('@HEADERS decorator', () => {
     it('should be usable as a parameter decorator for header injection', () => {
       expect(Headers).toBeDefined()
       expect(typeof Headers).toBe('function')
-      expect(HEADERS).toBeDefined()
-      expect(HEADERS).toBe(Headers)
     })
   })
 

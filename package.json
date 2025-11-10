@@ -1,6 +1,6 @@
 {
   "name": "nespress",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "author": "luizfbalves",
   "repository": {
     "type": "git",
@@ -31,8 +31,7 @@
   ],
   "license": "MIT",
   "publishConfig": {
-    "access": "public",
-    "tag": "beta"
+    "access": "public"
   },
   "scripts": {
     "build": "bun run build.ts",

@@ -2,7 +2,7 @@ import { safeDecorator } from './safe-decorator'
 
 function responseDecorator(target: Object, propertyKey: string | symbol, parameterIndex: number): void {
   if (typeof target.constructor.prototype[propertyKey] !== 'function' || typeof parameterIndex !== 'number') {
-    throw new Error('param decorator @RESPONSE can only be applied into method params.')
+    throw new Error('param decorator @Response can only be applied into method params.')
   }
 
   const responses: number[] = Reflect.getMetadata('response:metadata', target.constructor, propertyKey) || []

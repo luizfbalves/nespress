@@ -3,7 +3,7 @@ import { safeDecorator } from './safe-decorator'
 function decorator(header?: string) {
   return function (target: Object, propertyKey: string | symbol, parameterIndex: number) {
     if (typeof target.constructor.prototype[propertyKey] !== 'function' || typeof parameterIndex !== 'number') {
-      throw new Error(`param decorator @HEADERS can only be applied into method params.`)
+      throw new Error(`param decorator @Headers can only be applied into method params.`)
     }
 
     const headers: { index: number; name?: string }[] =
@@ -20,4 +20,3 @@ function decorator(header?: string) {
  * @param header - The name of the header. If omitted, injects the entire headers object.
  */
 export const Headers = (header?: string) => safeDecorator(decorator(header))
-export const HEADERS = Headers

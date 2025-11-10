@@ -2,7 +2,7 @@ import { safeDecorator } from './safe-decorator'
 
 function requestDecorator(target: Object, propertyKey: string | symbol, parameterIndex: number): void {
   if (typeof target.constructor.prototype[propertyKey] !== 'function' || typeof parameterIndex !== 'number') {
-    throw new Error(`param decorator @REQUEST can only be applied into method params.`)
+    throw new Error(`param decorator @Request can only be applied into method params.`)
   }
 
   // Get the existing list of request objects

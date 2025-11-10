@@ -4,7 +4,7 @@ import { safeDecorator } from './safe-decorator'
 function decorator(query?: string) {
   return function (target: Object, propertyKey: string | symbol, parameterIndex: number) {
     if (typeof target.constructor.prototype[propertyKey] !== 'function' || typeof parameterIndex !== 'number') {
-      throw new Error(`param decorator @QUERY can only be applied into method params.`)
+      throw new Error(`param decorator @Query can only be applied into method params.`)
     }
     // Get the existing query string parameters
     const queries: QueryParams[] =

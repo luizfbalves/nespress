@@ -12,7 +12,7 @@ import { logError } from '../common'
  *
  * @example
  * class UserController {
- *   @INJECT(UserService)
+ *   @Inject(UserService)
  *   private userService: UserService;
  * }
  */
@@ -40,7 +40,7 @@ export function Inject(serviceIdentifier: any) {
  * @returns Um decorador de classe
  *
  * @example
- * @INJECTABLE()
+ * @Injectable()
  * class UserService {
  *   findAll() {
  *     return ['user1', 'user2'];
@@ -49,7 +49,7 @@ export function Inject(serviceIdentifier: any) {
  */
 export function Injectable() {
   return function (target: any) {
-    // Adiciona metadados para indicar que a classe tem o decorador @INJECTABLE()
+    // Adiciona metadados para indicar que a classe tem o decorador @Injectable()
     Reflect.defineMetadata('injectable:metadata', true, target)
     // Continua usando o injectable do InversifyJS
     return injectable()(target)
@@ -65,7 +65,7 @@ export function Injectable() {
  *
  * @example
  * class UserController {
- *   constructor(@INJECT_PARAM(UserService) private userService: UserService) {}
+ *   constructor(@InjectParam(UserService) private userService: UserService) {}
  * }
  */
 export function InjectParam(serviceIdentifier: any) {

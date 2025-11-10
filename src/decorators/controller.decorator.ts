@@ -2,12 +2,12 @@ import { injectable } from 'inversify'
 import type { ControllerMetadataParams, RouteMetadataProps } from '@/global'
 
 /**
- * The CONTROLLER decorator is used to register a class as a controller.
+ * The Controller decorator is used to register a class as a controller.
  * It receives a partial {@link ControllerMetadataParams} object with the following properties:
  * - version: The version of the controller. If not set, the default version is used.
  * - path: The base path of the controller. If not set, the class name is used as the base path.
  * @param props - The properties of the controller.
- * @returns A function that decorates a class with the CONTROLLER metadata.
+ * @returns A function that decorates a class with the Controller metadata.
  */
 export function Controller(props?: ControllerMetadataParams) {
   return function (target: any) {

@@ -16,7 +16,7 @@ describe('Body decorator validation', () => {
       // create an instance to avoid unused variable
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const t = new TestClass()
-    }).toThrow('@BODY can only be used within classes decorated with @Controller.')
+    }).toThrow('@Body can only be used within classes decorated with @Controller.')
   })
 
 })

@@ -121,11 +121,13 @@ class NespressCore {
 
   private buildParams(controller: Function, handler: Function, request: Request, response: Response) {
     const params: any[] = []
+    const paramMetadata: QueryParams[] = Reflect.getMetadata('param:metadata', controller, handler.name) || []
     const queryMetadata: QueryParams[] = Reflect.getMetadata('query:metadata', controller, handler.name) || []
     const bodyMetadata: number[] = Reflect.getMetadata('body:metadata', controller, handler.name) || []
     const requestMetadata: number[] = Reflect.getMetadata('request:metadata', controller, handler.name) || []
     const responseMetadata: number[] = Reflect.getMetadata('response:metadata', controller, handler.name) || []
 
+    this.buildParamsFromMetadata(params, paramMetadata, request.params)
     this.buildParamsFromMetadata(params, bodyMetadata, request.body)
     this.buildParamsFromMetadata(params, queryMetadata, request.query)
     this.buildParamsFromMetadata(params, requestMetadata, request)
