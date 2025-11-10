@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import type { ClassType, NesPressConfigParams } from './global'
 
-import { log, logError } from './common'
+import { logger, logError, createCleanError } from './common'
 import { NespressCore } from './core'
 import { container } from './core/inversify'
 
@@ -45,16 +45,20 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
       // Inicializa o core com os controllers válidos
       this.core = new NespressCore(validControllers)
     } catch (error: any) {
-      logError(error, {
-        context: 'Nespress.constructor() - Inicialização da aplicação',
-        suggestions: [
-          'Verifique se todos os controllers têm o decorator @Controller()',
-          'Verifique se todos os providers têm o decorator @Injectable()',
-          'Verifique se "emitDecoratorMetadata": true está no tsconfig.json',
-          'Verifique se "reflect-metadata" foi importado no início do arquivo'
-        ]
-      })
-      throw error
+      // Se chegou aqui, o erro não foi tratado adequadamente
+      // Log apenas se não for o erro de "No controllers" (que já terminou o processo)
+      if (error && error.message && !error.message.includes('No controllers found')) {
+        logError(error, {
+          context: 'Nespress.constructor() - Inicialização da aplicação',
+          suggestions: [
+            'Verifique se todos os controllers têm o decorator @Controller()',
+            'Verifique se todos os providers têm o decorator @Injectable()',
+            'Verifique se "emitDecoratorMetadata": true está no tsconfig.json',
+            'Verifique se "reflect-metadata" foi importado no início do arquivo'
+          ]
+        })
+      }
+      throw createCleanError(error)
     }
   }
 
@@ -65,16 +69,13 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
   private registerProviders(providers: P[]) {
     providers.forEach((provider) => {
       if (!Reflect.hasMetadata('injectable:metadata', provider)) {
-        log({
-          type: 'warning',
-          message: `Provider ${provider.name} não possui o decorador @Injectable(). Isso pode causar problemas.`,
-        })
+        logger.warn(`Provider ${provider.name} não possui o decorador @Injectable(). Isso pode causar problemas.`)
       }
 
       // Registra o provider no container
       if (!container.isBound(provider)) {
         container.bind(provider).toSelf()
-        log({ message: `REGISTRANDO PROVIDER => {${provider.name}}...` })
+        logger.info(`REGISTRANDO PROVIDER => {${provider.name}}...`)
       }
     })
   }
@@ -91,10 +92,7 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
         (controller as any).__isController
 
       if (!isController) {
-        log({
-          type: 'warning',
-          message: `Controller ${controller.name} não possui o decorador @Controller(). Ele será ignorado.`,
-        })
+        logger.warn(`Controller ${controller.name} não possui o decorador @Controller(). Ele será ignorado.`)
         return
       }
 
@@ -102,7 +100,7 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
       if (!container.isBound(controller)) {
         try {
           container.bind(controller).toSelf()
-          log({ message: `REGISTRANDO CONTROLLER => {${controller.name}}...` })
+          logger.info(`REGISTRANDO CONTROLLER => {${controller.name}}...`)
         } catch (error) {
           logError(error as Error, {
             context: `registerControllers() - Registro do controller ${controller.name}`,
@@ -113,7 +111,7 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
               'Certifique-se que todos os serviços foram registrados no array "providers"'
             ]
           })
-          throw error
+          throw createCleanError(error as Error)
         }
       }
 
@@ -148,6 +146,7 @@ class Nespress<C extends ClassType = ClassType, P extends ClassType = ClassType>
           'Verifique se a configuração está correta'
         ]
       })
+      // Não precisa relançar aqui, apenas encerrar o processo
       process.exit(1)
     }
   }

@@ -9,12 +9,6 @@ export type QueryParams = {
   name?: string
 }
 
-export type LogParams = {
-  message: string | object | number | boolean
-  type?: 'default' | 'success' | 'error' | 'warning'
-  jumpLine?: boolean
-}
-
 export type ControllerMetadataParams = {
   version?: number
   path?: string

@@ -1,5 +1,3 @@
-import type { LogParams } from '@/global'
-
 /**
  * Interface para opções de formatação de erro
  */
@@ -151,6 +149,16 @@ export class ErrorFormatter {
         continue
       }
 
+      // Pular linhas com código minificado (identificadas por funções com nomes curtos como i, a, c, n, p, etc)
+      // Exemplo: "function J6(i){return i.length===0?"":`"
+      if (/function\s+[A-Z_][0-9]+\(/.test(line) || 
+          /\)\}function\s+\w+\(/.test(line) ||
+          line.includes('Binding constraints:') ||
+          line.includes('service identifier:') ||
+          line.includes('service redirections:')) {
+        continue
+      }
+
       // Manter apenas linhas relevantes do código do usuário
       formattedLines.push(line)
       
@@ -165,18 +173,26 @@ export class ErrorFormatter {
   }
 
   /**
-   * Loga erro formatado usando o sistema de logs do Nespress
+   * Loga erro formatado usando o sistema de logs do Nespress (Pino)
    */
   static log(error: Error, options: ErrorFormatterOptions = {}): void {
-    const formattedMessage = this.format(error, options)
+    const { context, suggestions, showStack = false } = options
     
-    // Importar o sistema de logs
-    const { log } = require('./index')
+    // Importar o logger do Pino
+    const { logger } = require('./logger')
     
-    log({
-      type: 'error',
-      message: formattedMessage
-    })
+    logger.error(
+      {
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: showStack ? error.stack : undefined,
+        },
+        context,
+        suggestions,
+      },
+      error.message
+    )
   }
 }
 
@@ -192,4 +208,32 @@ export function formatError(error: Error, options?: ErrorFormatterOptions): stri
  */
 export function logError(error: Error, options?: ErrorFormatterOptions): void {
   ErrorFormatter.log(error, options)
+}
+
+/**
+ * Cria um erro limpo sem stack trace interno
+ * Remove stack traces de node_modules e código minificado do inversify
+ * 
+ * @param error - Erro original
+ * @returns Novo erro apenas com a mensagem, sem stack trace interno
+ */
+export function createCleanError(error: Error): Error {
+  const cleanError = new Error(error.message)
+  
+  // Copiar propriedades customizadas se existirem
+  if ((error as any).code) {
+    (cleanError as any).code = (error as any).code
+  }
+  if ((error as any).statusCode) {
+    (cleanError as any).statusCode = (error as any).statusCode
+  }
+  
+  // Suprimir completamente o stack trace
+  // Definir como string vazia para que o Bun não exiba código fonte
+  cleanError.stack = ''
+  
+  // Sobrescrever o toString para retornar apenas a mensagem
+  cleanError.toString = () => error.message
+  
+  return cleanError
 }

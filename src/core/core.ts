@@ -1,4 +1,4 @@
-import { log, logError } from '@/common'
+import { logger, logError, createCleanError } from '@/common'
 import express, { type Request, type Response } from 'express'
 
 import { resolveDependencies } from '../decorators/inject.decorator'
@@ -60,7 +60,8 @@ class NespressCore {
         context: 'NespressCore.registerControllers() - Registro de controllers',
         showStack: false
       })
-      throw error
+      // Encerrar o processo sem relançar o erro para evitar stack trace
+      process.exit(1)
     }
 
     this.controllers.forEach((controller) => {
@@ -115,7 +116,7 @@ class NespressCore {
         response.status(statusCode).json(errorResponse)
       }
     })
-    log({ type: 'warning', message: `${method.toUpperCase()} => ${path}` })
+    logger.warn(`${method.toUpperCase()} => ${path}`)
   }
 
   private buildParams(controller: Function, handler: Function, request: Request, response: Response) {
@@ -173,10 +174,7 @@ class NespressCore {
    */
   initialize(port: number) {
     this.expressInstance.listen(port, () => {
-      log({
-        type: 'success',
-        message: `Server running on port => ${port}`,
-      })
+      logger.info(`Server running on port => ${port}`)
     })
   }
 
@@ -289,10 +287,13 @@ class NespressCore {
       const start = Date.now()
       res.on('finish', () => {
         const duration = Date.now() - start
-        log({
-          message: `${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`,
-          type: duration > 500 ? 'warning' : 'default',
-        })
+        const logMessage = `${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`
+        
+        if (duration > 500) {
+          logger.warn(logMessage)
+        } else {
+          logger.info(logMessage)
+        }
       })
       next()
     })
@@ -302,7 +303,7 @@ class NespressCore {
   usePlugin(plugin: NespressPlugin) {
     this.plugins.push(plugin)
     plugin.register(this.expressInstance)
-    log({ message: `PLUGIN REGISTRADO => ${plugin.name}` })
+    logger.info(`PLUGIN REGISTRADO => ${plugin.name}`)
     return this
   }
 }

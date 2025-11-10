@@ -122,6 +122,7 @@ jobs:
           # 1. registry-url está configurado
           # 2. permissions.id-token: write está definido (já está no job)
           # 3. Trusted Publisher está configurado no npm
+          # O setup-node@v4 automaticamente configura o .npmrc com OIDC
 
       - name: Validate package.json before publish
         run: |
@@ -173,20 +174,26 @@ jobs:
           echo "GitHub Repository: ${{ github.repository }}"
           echo "GitHub Ref: ${{ github.ref }}"
           echo "GitHub Event: ${{ github.event_name }}"
+          echo "GitHub Workflow: ${{ github.workflow }}"
           echo ""
           echo "Registry configurado:"
           npm config get registry
           echo ""
-          echo "⚠️  Verifique se o Trusted Publisher está configurado corretamente:"
-          echo "   - Owner: luizfbalves"
-          echo "   - Repository: nespress"
-          echo "   - Workflow filename: publish-npm.yml (deve corresponder EXATAMENTE, incluindo extensão .yml)"
+          echo "Verificando autenticação npm..."
+          npm whoami 2>&1 || echo "⚠️  Não autenticado (normal para OIDC antes do publish)"
           echo ""
-          echo "Acesse: https://www.npmjs.com/settings/luizfbalves/features"
+          echo "⚠️  IMPORTANTE - Verifique no npm:"
+          echo "   1. Acesse: https://www.npmjs.com/settings/luizfbalves/features"
+          echo "   2. Confirme que o Trusted Publisher está configurado:"
+          echo "      - Owner: luizfbalves (EXATO, sem espaços)"
+          echo "      - Repository: nespress (EXATO, sem espaços)"
+          echo "      - Workflow filename: publish-npm.yml (EXATO, incluindo .yml)"
+          echo "   3. Verifique se você é o proprietário do pacote 'nespress' no npm"
+          echo "   4. Acesse: https://www.npmjs.com/package/nespress e verifique 'Maintainers'"
           echo ""
-          echo "Testando acesso ao pacote..."
+          echo "Testando acesso ao pacote (read-only)..."
           PACKAGE_NAME=$(bun run --bun node -p "require('./package.json').name")
-          npm view "$PACKAGE_NAME" name 2>&1 | head -1 || echo "Não foi possível acessar o pacote (pode ser normal se for primeira publicação)"
+          npm view "$PACKAGE_NAME" name 2>&1 | head -3 || echo "⚠️  Não foi possível ler informações do pacote"
 
       - name: Publish to npm using OIDC (Trusted Publishers)
         if: steps.check_version.outputs.exists != 'true'
@@ -197,19 +204,68 @@ jobs:
           echo "  - Registry: https://registry.npmjs.org"
           echo "  - Package: $(bun run --bun node -p "require('./package.json').name")"
           echo "  - Version: $(bun run --bun node -p "require('./package.json').version")"
+          echo "  - GitHub Actor: ${{ github.actor }}"
+          echo "  - GitHub Repository: ${{ github.repository }}"
           echo ""
 
+          # Verificar se o .npmrc foi criado pelo setup-node
+          echo "Verificando configuração npm..."
+          if [ -f "$HOME/.npmrc" ]; then
+            echo "✅ Arquivo .npmrc encontrado"
+            # Verificar se contém configuração OIDC (sem mostrar token)
+            if grep -q "//registry.npmjs.org/:_authToken" "$HOME/.npmrc" 2>/dev/null; then
+              echo "   ✅ Contém configuração de autenticação"
+            else
+              echo "   ⚠️  Não encontrou configuração de token (pode ser OIDC)"
+            fi
+          else
+            echo "❌ Arquivo .npmrc não encontrado!"
+            echo "   O setup-node@v4 deveria criar automaticamente com OIDC"
+            echo "   Isso pode indicar problema na configuração do OIDC"
+          fi
+
+          echo ""
+          echo "Verificando variáveis de ambiente OIDC..."
+          env | grep -i "oidc\|token\|auth" | sed 's/=.*/=***/' || echo "Nenhuma variável OIDC encontrada (pode ser normal)"
+
+          echo ""
+          echo "Tentando publicar..."
+
           # Tentar publicar com informações de debug
-          npm publish --access public --verbose || {
+          npm publish --access public --verbose 2>&1 || {
+            EXIT_CODE=$?
             echo ""
-            echo "❌ Erro ao publicar. Possíveis causas:"
-            echo "1. Trusted Publisher não configurado corretamente no npm"
-            echo "2. Workflow filename não corresponde exatamente: publish-npm.yml"
-            echo "3. Repository/Organization não corresponde: luizfbalves/nespress"
-            echo "4. Permissões do workflow não incluem id-token: write"
+            echo "❌ Erro ao publicar (código: $EXIT_CODE)"
             echo ""
-            echo "Verifique: https://www.npmjs.com/settings/luizfbalves/features"
-            exit 1
+            echo "🔍 Diagnóstico do erro 404:"
+            echo "   Este erro geralmente indica problema de AUTENTICAÇÃO/PERMISSÕES"
+            echo ""
+            echo "📋 Checklist de verificação:"
+            echo ""
+            echo "1. ✅ Trusted Publisher configurado no npm?"
+            echo "   → https://www.npmjs.com/settings/luizfbalves/features"
+            echo "   → Verifique: Owner=luizfbalves, Repo=nespress, File=publish-npm.yml"
+            echo ""
+            echo "2. ✅ Você é proprietário/maintainer do pacote 'nespress'?"
+            echo "   → https://www.npmjs.com/package/nespress"
+            echo "   → Verifique a aba 'Maintainers'"
+            echo ""
+            echo "3. ✅ O workflow está sendo executado no repositório correto?"
+            echo "   → Repositório atual: ${{ github.repository }}"
+            echo "   → Deve ser: luizfbalves/nespress"
+            echo ""
+            echo "4. ✅ O workflow filename está correto?"
+            echo "   → Nome atual: publish-npm.yml"
+            echo "   → Deve corresponder EXATAMENTE ao configurado no npm"
+            echo ""
+            echo "5. ✅ Permissões do workflow incluem id-token: write?"
+            echo "   → Verifique linha 60 do workflow"
+            echo ""
+            echo "💡 Dica: Se o pacote foi criado por outra conta, você precisa:"
+            echo "   1. Ser adicionado como maintainer no npm"
+            echo "   2. OU recriar o Trusted Publisher com a conta correta"
+            echo ""
+            exit $EXIT_CODE
           }
         continue-on-error: false
         # OIDC é usado automaticamente quando id-token: write está nas permissions

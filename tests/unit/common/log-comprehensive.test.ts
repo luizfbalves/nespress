@@ -1,141 +1,157 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { log } from '../../../src/common'
+import { logger, logSuccess, logError } from '../../../src/common'
 
-describe('log utility - Comprehensive Coverage', () => {
-  let consoleSpy: any
-
+describe('Pino logger - Comprehensive Coverage', () => {
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    // Mock dos métodos do logger
+    vi.spyOn(logger, 'info').mockImplementation(() => logger)
+    vi.spyOn(logger, 'warn').mockImplementation(() => logger)
+    vi.spyOn(logger, 'error').mockImplementation(() => logger)
+    vi.spyOn(logger, 'debug').mockImplementation(() => logger)
+    vi.spyOn(logger, 'trace').mockImplementation(() => logger)
+    vi.spyOn(logger, 'fatal').mockImplementation(() => logger)
   })
 
   afterEach(() => {
-    consoleSpy.mockRestore()
+    vi.restoreAllMocks()
   })
 
-  describe('log with different types', () => {
-    it('should log success messages in green', () => {
-      log({ type: 'success', message: 'Success message' })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      // Check for green color code (\x1b[32m)
-      expect(callArg).toContain('\x1b[32m%s\x1b[0m')
+  describe('logger methods', () => {
+    it('should call info method', () => {
+      logger.info('Info message')
+      expect(logger.info).toHaveBeenCalledWith('Info message')
     })
 
-    it('should log error messages in red', () => {
-      log({ type: 'error', message: 'Error message' })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      // Check for red color code (\x1b[31m)
-      expect(callArg).toContain('\x1b[31m%s\x1b[0m')
+    it('should call warn method', () => {
+      logger.warn('Warning message')
+      expect(logger.warn).toHaveBeenCalledWith('Warning message')
     })
 
-    it('should log warning messages in yellow', () => {
-      log({ type: 'warning', message: 'Warning message' })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      // Check for yellow color code (\x1b[33m)
-      expect(callArg).toContain('\x1b[33m%s\x1b[0m')
+    it('should call error method', () => {
+      logger.error('Error message')
+      expect(logger.error).toHaveBeenCalledWith('Error message')
     })
 
-    it('should log default messages without color', () => {
-      log({ message: 'Default message' })
+    it('should call debug method', () => {
+      logger.debug('Debug message')
+      expect(logger.debug).toHaveBeenCalledWith('Debug message')
+    })
 
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      // Should not contain color codes for default
-      expect(callArg).toContain('Default message')
+    it('should call trace method', () => {
+      logger.trace('Trace message')
+      expect(logger.trace).toHaveBeenCalledWith('Trace message')
+    })
+
+    it('should call fatal method', () => {
+      logger.fatal('Fatal message')
+      expect(logger.fatal).toHaveBeenCalledWith('Fatal message')
     })
   })
 
-  describe('log with jumpLine option', () => {
-    it('should print empty line when jumpLine is true', () => {
-      log({ jumpLine: true, message: 'Test' })
-
-      // Should be called twice - once for empty line, once for message
-      expect(consoleSpy).toHaveBeenCalledTimes(2)
-      expect(consoleSpy.mock.calls[0][0]).toBe('')
+  describe('logger with context objects', () => {
+    it('should log info with context', () => {
+      const context = { userId: 123, action: 'create' }
+      logger.info(context, 'User created resource')
+      expect(logger.info).toHaveBeenCalledWith(context, 'User created resource')
     })
 
-    it('should not print empty line when jumpLine is false', () => {
-      log({ jumpLine: false, message: 'Test' })
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1)
+    it('should log warning with context', () => {
+      const context = { duration: 600, endpoint: '/api/users' }
+      logger.warn(context, 'Slow response time')
+      expect(logger.warn).toHaveBeenCalledWith(context, 'Slow response time')
     })
 
-    it('should not print empty line when jumpLine is undefined', () => {
-      log({ message: 'Test' })
-
-      expect(consoleSpy).toHaveBeenCalledTimes(1)
+    it('should log error with context', () => {
+      const context = { code: 'AUTH_FAILED', userId: 456 }
+      logger.error(context, 'Authentication failed')
+      expect(logger.error).toHaveBeenCalledWith(context, 'Authentication failed')
     })
   })
 
-  describe('log with object messages', () => {
-    it('should stringify object messages', () => {
-      const obj = { key: 'value', nested: { prop: 123 } }
-      log({ message: obj })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      expect(callArg).toContain(JSON.stringify(obj))
+  describe('logSuccess helper', () => {
+    it('should call logger.info with success level', () => {
+      logSuccess('Operation successful')
+      expect(logger.info).toHaveBeenCalledWith({ level: 'success' }, 'Operation successful')
     })
 
-    it('should stringify array messages', () => {
-      const arr = [1, 2, 3, 'test']
-      log({ message: arr })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      expect(callArg).toContain(JSON.stringify(arr))
-    })
-
-    it('should stringify number messages', () => {
-      log({ message: 42 })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      expect(callArg).toContain('42')
+    it('should call logger.info with context and success level', () => {
+      const context = { operation: 'deploy' }
+      logSuccess('Deploy completed', context)
+      expect(logger.info).toHaveBeenCalledWith({ ...context, level: 'success' }, 'Deploy completed')
     })
   })
 
-  describe('log with all options combined', () => {
-    it('should handle jumpLine with different message types', () => {
-      log({ type: 'success', jumpLine: true, message: 'Combined' })
-
-      expect(consoleSpy).toHaveBeenCalledTimes(2)
+  describe('logError helper', () => {
+    it('should log error with basic options', () => {
+      const error = new Error('Test error')
+      logError(error)
+      
+      expect(logger.error).toHaveBeenCalled()
+      const [firstArg, secondArg] = (logger.error as any).mock.calls[0]
+      expect(firstArg.error.message).toBe('Test error')
+      expect(secondArg).toBe('Test error')
     })
 
-    it('should handle jumpLine with error type', () => {
-      log({ type: 'error', jumpLine: true, message: 'Error with jump' })
-
-      expect(consoleSpy).toHaveBeenCalledTimes(2)
+    it('should log error with context', () => {
+      const error = new Error('Test error')
+      logError(error, { context: 'User registration' })
+      
+      expect(logger.error).toHaveBeenCalled()
+      const [firstArg] = (logger.error as any).mock.calls[0]
+      expect(firstArg.context).toBe('User registration')
     })
 
-    it('should handle jumpLine with object message', () => {
-      log({ jumpLine: true, message: { data: 'test' } })
+    it('should log error with suggestions', () => {
+      const error = new Error('Test error')
+      const suggestions = ['Check configuration', 'Verify credentials']
+      logError(error, { suggestions })
+      
+      expect(logger.error).toHaveBeenCalled()
+      const [firstArg] = (logger.error as any).mock.calls[0]
+      expect(firstArg.suggestions).toEqual(suggestions)
+    })
 
-      expect(consoleSpy).toHaveBeenCalledTimes(2)
+    it('should include stack trace when showStack is true', () => {
+      const error = new Error('Test error')
+      logError(error, { showStack: true })
+      
+      expect(logger.error).toHaveBeenCalled()
+      const [firstArg] = (logger.error as any).mock.calls[0]
+      expect(firstArg.error.stack).toBeDefined()
+    })
+
+    it('should not include stack trace when showStack is false', () => {
+      const error = new Error('Test error')
+      logError(error, { showStack: false })
+      
+      expect(logger.error).toHaveBeenCalled()
+      const [firstArg] = (logger.error as any).mock.calls[0]
+      expect(firstArg.error.stack).toBeUndefined()
     })
   })
 
-  describe('log prefix formatting', () => {
-    it('should include process ID in output', () => {
-      log({ message: 'Test' })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      expect(callArg).toContain(`[${process.pid}]`)
+  describe('logger with nested objects', () => {
+    it('should handle deeply nested objects', () => {
+      const context = {
+        user: {
+          id: 123,
+          profile: {
+            name: 'Test User',
+            settings: { theme: 'dark' }
+          }
+        }
+      }
+      logger.info(context, 'Complex object logged')
+      expect(logger.info).toHaveBeenCalledWith(context, 'Complex object logged')
     })
 
-    it('should include date in output', () => {
-      log({ message: 'Test' })
-
-      expect(consoleSpy).toHaveBeenCalled()
-      const callArg = consoleSpy.mock.calls[0][0]
-      // Check for date pattern in format
-      expect(callArg).toMatch(/\[\d{1,2}\/\d{1,2}\/\d{4}/i)
+    it('should handle arrays in context', () => {
+      const context = {
+        errors: ['Error 1', 'Error 2', 'Error 3'],
+        codes: [400, 401, 403]
+      }
+      logger.warn(context, 'Multiple errors occurred')
+      expect(logger.warn).toHaveBeenCalledWith(context, 'Multiple errors occurred')
     })
   })
 })
